@@ -69,7 +69,7 @@ class Task:
     def pause_timer(self):
         if self.timer_status:
             # прибавляем к счетчику общего времени работы на задачей в секундах
-            self.total_duration += (datetime.datetime.now() - self.start_time).seconds
+            self.total_duration += int(datetime.datetime.now().timestamp() - self.start_time.timestamp())
             # сохраняем в бд
             db_utils.update_value(self.project_id, 'total_duration', self.task_id, self.total_duration)
             print(self.total_duration)
@@ -196,8 +196,8 @@ class Project:
             self.begin_date_project_text.config(text=swt_utils.date_format(self.start_date)+' - '+swt_utils.date_format(self.end_date))
             self.end_project_widget.itemconfig(self.end_project_widget.text_id, text="Завершено", fill="black")
             self.end_project_widget.itemconfig(self.end_project_widget.image_id, image=gui_utils.tk_end_project_ok_skin)
-            self.end_project_widget.grid(row=1, column=1, sticky="e", padx=10)
-            self.add_task_widget.grid_forget()
+            #self.end_project_widget.grid(row=1, column=1, sticky="e", padx=10)
+            self.add_task_widget.pack_forget()
             self.status_project_widget.itemconfig(self.status_project_widget.image_id, image=gui_utils.tk_project_status_off_skin)
             # изменяем статус проекта
             self.status = False

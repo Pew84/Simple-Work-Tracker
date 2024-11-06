@@ -42,7 +42,8 @@ def update_window(main):
             # если таймер активен
             if tasks.start_time.second != 0:
                 # прибавляем к счетчику общего времени работы на задачей время с момента старта таймера в секундах
-                total_task = tasks.total_duration + (datetime.datetime.now() - tasks.start_time).seconds
+                # total_task = tasks.total_duration + (datetime.datetime.now() - tasks.start_time).seconds
+                total_task = tasks.total_duration + int((datetime.datetime.now().timestamp() - tasks.start_time.timestamp()))
                 txt = timer_format(total_task)
                 tasks.timer_task_text.config(text=txt)
             # если таймер выключен

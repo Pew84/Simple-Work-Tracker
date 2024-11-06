@@ -53,6 +53,8 @@ def run_gui():
     tk_project_status_on_skin = img_load("project_status_on.png")
     global tk_project_status_off_skin
     tk_project_status_off_skin = img_load("project_status_off.png")
+    global tk_profect_frame_right_skin
+    tk_profect_frame_right_skin = img_load("project_right.png")
     # фрейм задачи
     global tk_end_task_skin
     tk_end_task_skin = img_load("end_task.png")
@@ -103,7 +105,6 @@ def create_main_frame():
     # РИСУЕМ ФРЕЙМ ГЛАВНОЙ ПАНЕЛИ
     main_frame = tkinter.Frame(root, bg="#efefef", height=120)
     main_frame.pack_propagate(False)
-    #main_frame.pack(expand=False, fill="x", side="top", anchor="nw")
     main_frame.grid(row=0, column=0, columnspan=2, sticky="ew")  # Только горизонтальное расширение, занимает 2 столбца
     # кнопка Завершенные основного фрейма
     complete_view_button = tkinter.Canvas(main_frame, bg="#efefef", width=222, height=42, highlightthickness=0)
@@ -124,8 +125,6 @@ def create_main_frame():
     current_view_button.create_text(111, 21, text="Текущие", font=("Helvetica", 16), fill="white")
 
     # кнопка СОЗДАНИЯ НОВОГО ПРОЕКТА
-    #add_project_button = tkinter.Frame(main_frame, bg="#cfcfcf", width=50, height=50)
-    #add_project_button.pack(side="right", anchor="sw", padx=15, pady=15)
     # Создаем Canvas для размещения изображения
     add_project_button = tkinter.Canvas(main_frame, bg="#efefef", width=80, height=80, highlightthickness=0)
     add_project_button.pack(side="right", anchor="sw", padx=15, pady=15)
@@ -157,51 +156,54 @@ def create_main_frame():
     canvas.bind('<Configure>', resize_frame)
     # Обработка прокрутки колеса мыши
     canvas.bind_all("<MouseWheel>", on_mouse_wheel)
-    #main_frame_projects.pack(expand=False, fill='x', side='top', anchor="nw")
     root.geometry("901x600")  # меняем размер окна для срабатывания события event, чтобы все элементы растянулись на всю ширину окна
     return main_frame_projects, complete_view_button, current_view_button, add_project_button
 
 
 # рисуем интерфейс проекта
 def create_project_gui(main_frame_projects, project_name, begin_date, end_date):
-    #project_name = "влоафasdfaasdfasdfasdfasdfasdfsdfaadfgafdgasdfgasdfgasdfggsdfasdfasdfasdfждывлоафыдвоафылдваожфывлдао" # для теста, удалить!!!!!!!!!!!!!!
     # основной фрейм
     main_project_frame = tkinter.Frame(main_frame_projects, bg="#cfcfcf", width=800, height=100)
-    #main_project_frame.pack_propagate(False)
     main_project_frame.pack(expand=True, fill='x', side='bottom', anchor="nw", padx=15, pady=15)
     # фрейм управления проектом
     project_frame = tkinter.Frame(main_project_frame, bg="#556c95", width=800, height=80)
     project_frame.pack_propagate(False)
     project_frame.pack(expand=True, fill='x', side='top', anchor="nw", padx=10, pady=10)
     # РАЗДЕЛ ГРАФИЧЕСКИХ ЭЛЕМЕНТОВ ПЛАШКИ УПРАВЛЕНИЯ ПРОЕКТАМИ
-    project_frame.grid_columnconfigure(5, weight=5, minsize=80)  # Столбец 4 будет растягиваться по ширине
-    project_frame.grid_columnconfigure(3, weight=1)  # Столбец 3 будет растягиваться по ширине
-    project_frame.grid_columnconfigure(1, minsize=40, weight=0)  # 1 столбец фиксированной ширины
-    project_frame.grid_columnconfigure(2, minsize=80)  # 1 столбец фиксированной ширины
+    project_frame.grid_columnconfigure(3, weight=5, minsize=80)  # Столбец 3 будет растягиваться по ширине
+    project_frame.grid_columnconfigure(2, weight=1)  # Столбец 2 будет растягиваться по ширине
+    #project_frame.grid_columnconfigure(1, minsize=40, weight=0)  # 1 столбец фиксированной ширины
     # кнопка показа списка задач
     show_tasks_button = tkinter.Canvas(project_frame, bg="#cfcfcf", width=70, height=80, highlightthickness=0)
     show_tasks_button.grid(row=0, column=0, rowspan=2)
     show_tasks_button.create_image(35, 40, anchor="center", image=tk_show_tasks_on_skin)  # Размещаем изображение в Canvas
+    # ферейм для размещения Имя проекта и кнопки удаления
+    project_name_frame = tkinter.Frame(project_frame, bg="#556c95", width=40, height=40)
+    project_name_frame.grid(row=0, column=1, columnspan=2, sticky="w")
     # текст с названием проекта
-    name_project_text = tkinter.Label(project_frame, text=project_name)
-    name_project_text.grid(row=0, column=1, columnspan=3, sticky="w")
+    name_project_text = tkinter.Label(project_name_frame, text=project_name)
+    name_project_text.pack(side=tkinter.LEFT)
     # кнопка удаления проекта
-    delete_project_button = tkinter.Canvas(project_frame, bg="#556c95", width=40, height=40, highlightthickness=0)
-    delete_project_button.grid(row=0, column=4, sticky="e")
+    delete_project_button = tkinter.Canvas(project_name_frame, bg="#556c95", width=40, height=40, highlightthickness=0)
+    delete_project_button.pack_propagate(True)
+    delete_project_button.pack(side=tkinter.RIGHT)
     delete_project_button.create_image(20, 20, anchor="center", image=tk_del_project_skin)  # Размещаем изображение в Canvas
+    # ферейм для размещения кнопок добавления задачи и завершения проекта
+    project_addend_frame = tkinter.Frame(project_frame, bg="#556c95", width=40, height=40)
+    project_addend_frame.grid(row=1, column=1, sticky="w")
     # кнопка добавления задачи
-    add_task_button = tkinter.Canvas(project_frame, bg="#556c95", width=40, height=40, highlightthickness=0)
-    add_task_button.grid(row=1, column=1, sticky="w")
+    add_task_button = tkinter.Canvas(project_addend_frame, bg="#556c95", width=40, height=40, highlightthickness=0)
+    add_task_button.pack(side=tkinter.LEFT)
     if end_date is None:
         add_task_button.create_image(20, 20, anchor="center", image=tk_add_task_skin)  # Размещаем изображение в Canvas
     # кнопка завершения проекта
-    end_project_button = tkinter.Canvas(project_frame, bg="#556c95", width=122, height=34, highlightthickness=0)
-    end_project_button.grid(row=1, column=2, sticky="e")
+    end_project_button = tkinter.Canvas(project_addend_frame, bg="#556c95", width=122, height=34, highlightthickness=0)
+    end_project_button.pack(side=tkinter.LEFT)
     if end_date is None:
         end_project_button.image_id = end_project_button.create_image(61, 17, anchor="center", image=tk_end_project_skin)  # Размещаем изображение в Canvas
         end_project_button.text_id = end_project_button.create_text(61, 17, text="Завершить", font=("Helvetica", 13), fill="white")  # Пишем подпись кнопки
     else:
-        end_project_button.grid(row=1, column=1, sticky="e", padx=10)
+        add_task_button.pack_forget()
         end_project_button.image_id = end_project_button.create_image(61, 17, anchor="center", image=tk_end_project_ok_skin)  # Размещаем изображение в Canvas
         end_project_button.text_id = end_project_button.create_text(61, 17, text="Завершено", font=("Helvetica", 13), fill="black")  # Пишем подпись кнопки
     # текст с датой начала проекта
@@ -209,17 +211,21 @@ def create_project_gui(main_frame_projects, project_name, begin_date, end_date):
         begin_date_project_text = tkinter.Label(project_frame, text=swt_utils.date_format(begin_date)+' - ...')
     else:
         begin_date_project_text = tkinter.Label(project_frame, text=swt_utils.date_format(begin_date)+' - '+swt_utils.date_format(end_date))
-    begin_date_project_text.grid(row=0, column=5, rowspan=2)
+    begin_date_project_text.grid(row=0, column=3, rowspan=2)
     # текст общее время затраченное на проект
     timer_project_text = tkinter.Label(project_frame, text="Общий таймер проекта")
-    timer_project_text.grid(row=0, column=6, rowspan=2)
+    timer_project_text.grid(row=0, column=4, rowspan=2, padx=10)
     # иконка статуса проекта
     status_project_icon = tkinter.Canvas(project_frame, bg="#556c95", width=30, height=30, highlightthickness=0)
-    status_project_icon.grid(row=0, column=7, rowspan=2, padx=15)
+    status_project_icon.grid(row=0, column=5, rowspan=2, padx=0)
     if end_date is None:
         status_project_icon.image_id = status_project_icon.create_image(15, 15, anchor="center", image=tk_project_status_on_skin)  # Размещаем изображение в Canvas
     else:
         status_project_icon.image_id = status_project_icon.create_image(15, 15, anchor="center", image=tk_project_status_off_skin)  # Размещаем изображение в Canvas
+    # элемент закругления справа
+    project_right_frame = tkinter.Canvas(project_frame, bg="#cfcfcf", width=20, height=80, highlightthickness=0)
+    project_right_frame.grid(row=0, column=6, rowspan=2, padx=0)
+    project_right_frame.create_image(10, 40, anchor="center", image=tk_profect_frame_right_skin)
     return main_project_frame, delete_project_button, add_task_button, timer_project_text, end_project_button, begin_date_project_text, status_project_icon
 
 # рисуем интерфейс задачи
