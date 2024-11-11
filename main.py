@@ -30,7 +30,7 @@ class Task:
          self.end_task_widget,
          self.begin_date_task_text,
          self.status_task_widget,
-         self.arrow_task) = gui_utils.create_task_gui(project_frame, self.task_name, self.start_date, self.end_date, self.timer_status, self.last_task)
+         self.arrow_task) = gui_utils.create_task_gui(project_frame, self.task_name, self.start_date, self.end_date, self.timer_status, self.last_task, self)
         # определяем функцию обработчика событий нажатия на кнопку Удаления Задачи
         self.delete_task_widget.bind("<Button-1>", self.delete_self)
         # определяем функцию обработчика событий нажатия на кнопку Старт таймера Задачи
@@ -151,7 +151,7 @@ class Project:
          self.end_project_widget,
          self.begin_date_project_text,
          self.status_project_widget,
-         self.show_tasks_widget) = gui_utils.create_project_gui(main_frame_projects, self.name, self.start_date, self.end_date)
+         self.show_tasks_widget) = gui_utils.create_project_gui(main_frame_projects, self.name, self.start_date, self.end_date, self)
 
         # создаем список задач-проектов
         if self.tasks != []:
@@ -189,7 +189,8 @@ class Project:
     def add_task(self, event):
         if self.status is not False:
             # получаем имя через диалоговое окно для ввода имени Задачи
-            new_task_name = gui_utils.add_task_gui()
+            #new_task_name = gui_utils.add_task_gui()
+            new_task_name = "New Task"
             if new_task_name:
                 print(f"Task '{new_task_name}' added to project '{self.name}'")
                 # добавляем новую Задачу в БД
@@ -332,7 +333,8 @@ class Main:
     # функция обработки события нажатия на кнопку Добваить новый проект
     def add_project_button_click(self, event):
         # получем имя через диалоговое окно для ввода имени проекта
-        new_project_name = gui_utils.add_project_gui()
+        #new_project_name = gui_utils.add_project_gui()
+        new_project_name = "New Project"
         if new_project_name:
             print(f"Project Name: {new_project_name}")
             # добавляем новый Проект в БД

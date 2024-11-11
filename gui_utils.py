@@ -1,5 +1,6 @@
 import tkinter
 import tkinter.simpledialog
+import tkinter.font
 import tkextrafont
 import db_utils
 import swt_utils
@@ -160,8 +161,9 @@ def create_main_frame():
     complete_view_button.pack(side="left", anchor="sw", padx=15, pady=0)
     # Размещаем изображение в Canvas
     complete_view_button.image_id = complete_view_button.create_image(111, 21, anchor="center", image=tk_hide_button_skin)
+    complete_view_button.create_image(185, 21, anchor="center", image=tk_task_status_off_skin)
     # Пишем подпись кнопки
-    complete_view_button.text_id = complete_view_button.create_text(111, 21, text="Завершенные", font=("Helvetica", 16), fill="black")
+    complete_view_button.text_id = complete_view_button.create_text(95, 21, text="Завершенные", font=("Helvetica", 16), fill="black")
 
     # кнопка Текущие основного фрейма
     current_view_button = tkinter.Canvas(main_frame, bg="#efefef", width=222, height=42, highlightthickness=0)
@@ -169,8 +171,9 @@ def create_main_frame():
     current_view_button.pack(side="left", anchor="sw", padx=0, pady=0)
     # Размещаем изображение в Canvas
     current_view_button.image_id = current_view_button.create_image(111, 21, anchor="center", image=tk_show_button_skin)
+    current_view_button.create_image(165, 21, anchor="center", image=tk_task_status_on_skin)
     # Пишем подпись кнопки
-    current_view_button.text_id = current_view_button.create_text(111, 21, text="Текущие", font=("Helvetica", 16), fill="white")
+    current_view_button.text_id = current_view_button.create_text(95, 21, text="Текущие", font=("Helvetica", 16), fill="white")
 
     # кнопка СОЗДАНИЯ НОВОГО ПРОЕКТА
     # Создаем Canvas для размещения изображения
@@ -180,7 +183,7 @@ def create_main_frame():
     add_project_button.create_image(40, 40, anchor="center", image=tk_add_project_skin)
 
     # Создаем холст для области списка проектов
-    canvas = tkinter.Canvas(root, bg="#efefef") #, scrollregion=(0, 0, 1000, 1000))
+    canvas = tkinter.Canvas(root, bg="#efefef", highlightthickness=0) #, scrollregion=(0, 0, 1000, 1000))
     #canvas.pack(side="left", fill="both", expand=True)
     canvas.grid(row=1, column=0, sticky="nsew", padx=15, pady=15)  # Растягиваем по всем направлениям
     root.grid_columnconfigure(0, weight=1)  # Столбец 0 будет растягиваться по ширине
@@ -208,7 +211,39 @@ def create_main_frame():
 
 
 # рисуем интерфейс проекта
-def create_project_gui(main_frame_projects, project_name, begin_date, end_date):
+def create_project_gui(main_frame_projects, project_name, begin_date, end_date, project_class):
+    # функция редактирования имени проекта
+    def edit_project_name(event):
+        name_project_text.pack_forget()
+        name_project_text_edit.delete(0, tkinter.END)
+        name_project_text_edit.insert(0, name_project_text["text"])
+        adjust_entry_width()
+        name_project_text_edit.pack(side=tkinter.LEFT, anchor=tkinter.SW, padx=15)
+        name_project_text_edit.focus()
+        root.bind("<Button-1>", click_outside)  # Включаем отслеживание кликов вне Entry
+
+    # функция сохранения введенного имени проекта
+    def save_project_name(event=None):
+        name_project_text.config(text=name_project_text_edit.get())
+        name_project_text_edit.pack_forget()
+        name_project_text.pack(side=tkinter.LEFT, anchor=tkinter.SW, padx=15)
+        root.unbind("<Button-1>")  # Отключаем отслеживание кликов
+        # сохраняем в БД
+        db_utils.update_value("PROJECTS", "project_name", project_class.id, name_project_text_edit.get())
+        # сохраняем в свойство объекта
+        project_class.name = name_project_text_edit.get()
+
+    # функция ввода имени проекта при клике вне виджета редактирования имени
+    def click_outside(event):
+        if event.widget != name_project_text_edit:
+            save_project_name()
+
+    # функция расширения ширины виджета при вводе имени проекта
+    def adjust_entry_width(*args):
+        font = tkinter.font.Font(font=name_project_text_edit["font"])
+        text_width = font.measure(name_project_text_edit.get())
+        name_project_text_edit.config(width=max(text_width // font.measure("0") + 1, 1))  # +1 для корректировки
+
     # основной фрейм
     main_project_frame = tkinter.Frame(main_frame_projects, bg="#cfcfcf", width=800, height=100)
     main_project_frame.pack(expand=True, fill='x', side='bottom', anchor="nw", padx=0, pady=15) # Только горизонтальное расширение
@@ -262,7 +297,12 @@ def create_project_gui(main_frame_projects, project_name, begin_date, end_date):
     project_name_frame.grid(row=0, column=1, columnspan=2, sticky="w")
     # текст с названием проекта
     name_project_text = tkinter.Label(project_name_frame, text=project_name, bg="#556c95", fg="white", font=project_name_font)
+    name_project_text.bind("<Button-1>", edit_project_name)
     name_project_text.pack(side=tkinter.LEFT, anchor=tkinter.SW, padx=15)
+    # виджет для редактирования текста
+    name_project_text_edit = tkinter.Entry(project_name_frame, bg="#556c95", fg="white", font=project_name_font, relief=tkinter.FLAT, insertbackground="white", selectbackground="#8899b6")
+    name_project_text_edit.bind("<KeyRelease>", adjust_entry_width)  # Перехватываем событие при вводе текста)
+    name_project_text_edit.bind("<Return>", save_project_name)
     # кнопка удаления проекта
     delete_project_button = tkinter.Canvas(project_name_frame, bg="#556c95", width=40, height=40, highlightthickness=0)
     delete_project_button.pack_propagate(True)
@@ -310,7 +350,38 @@ def create_project_gui(main_frame_projects, project_name, begin_date, end_date):
     return main_project_frame, delete_project_button, add_task_button, timer_project_text, end_project_button, begin_date_project_text, status_project_icon, show_tasks_button
 
 # рисуем интерфейс задачи
-def create_task_gui(main_project_frame, task_name, start_date, end_date, timer_status, last_task):
+def create_task_gui(main_project_frame, task_name, start_date, end_date, timer_status, last_task, task_class):
+    def edit_task_name(event):
+        name_task_text.pack_forget()
+        name_task_text_edit.delete(0, tkinter.END)
+        name_task_text_edit.insert(0, name_task_text["text"])
+        adjust_entry_width()
+        name_task_text_edit.pack(side=tkinter.LEFT, anchor=tkinter.SW)
+        name_task_text_edit.focus()
+        root.bind("<Button-1>", click_outside)  # Включаем отслеживание кликов вне Entry
+
+        # функция сохранения введенного имени проекта
+    def save_task_name(event=None):
+        name_task_text.config(text=name_task_text_edit.get())
+        name_task_text_edit.pack_forget()
+        name_task_text.pack(side=tkinter.LEFT, anchor=tkinter.SW)
+        root.unbind("<Button-1>")  # Отключаем отслеживание кликов
+        # сохраняем в БД
+        db_utils.update_value(task_class.project_id, "task_name", task_class.task_id, name_task_text_edit.get())
+        # сохраняем в свойство объекта
+        task_class.name = name_task_text_edit.get()
+
+        # функция ввода имени проекта при клике вне виджета редактирования имени
+    def click_outside(event):
+        if event.widget != name_task_text_edit:
+            save_task_name()
+
+        # функция расширения ширины виджета при вводе имени проекта
+    def adjust_entry_width(*args):
+        font = tkinter.font.Font(font=name_task_text_edit["font"])
+        text_width = font.measure(name_task_text_edit.get())
+        name_task_text_edit.config(width=max(text_width // font.measure("0") + 1, 1))  # +1 для корректировки
+
     # # фрейм управления задачей
     task_frame = tkinter.Frame(main_project_frame, bg="#ececec", width=800, height=60)
     task_frame.pack_propagate(False)
@@ -339,10 +410,15 @@ def create_task_gui(main_project_frame, task_name, start_date, end_date, timer_s
     task_name_frame.grid(row=1, column=2, columnspan=2, sticky="w")
     # текст с названием Задачи
     name_task_text = tkinter.Label(task_name_frame, text=task_name, bg="#ececec", fg="black", font=task_name_font)
+    name_task_text.bind("<Button-1>", edit_task_name)
     name_task_text.pack(side=tkinter.LEFT, anchor=tkinter.SW)
+    # виджет для редактирования текста
+    name_task_text_edit = tkinter.Entry(task_name_frame, bg="#ececec", fg="black", font=task_name_font, relief=tkinter.FLAT, insertbackground="black", selectbackground="#556c95")
+    name_task_text_edit.bind("<KeyRelease>", adjust_entry_width)  # Перехватываем событие при вводе текста)
+    name_task_text_edit.bind("<Return>", save_task_name)
     # кнопка удаления Задачи
     delete_task_button = tkinter.Canvas(task_name_frame, bg="#ececec", width=30, height=30, highlightthickness=0)
-    delete_task_button.pack(side=tkinter.LEFT, padx=5)
+    delete_task_button.pack(side=tkinter.RIGHT, padx=5)
     delete_task_button.create_image(15, 15, anchor="center", image=tk_del_task_skin)  # Размещаем изображение
     # ферейм для размещения кнопок старта и завершения
     task_startend_frame = tkinter.Frame(task_frame, bg="#ececec", width=30, height=30)
@@ -397,9 +473,11 @@ def create_task_gui(main_project_frame, task_name, start_date, end_date, timer_s
     return task_frame, delete_task_button, start_task_button, timer_task_text, end_task_button, begin_date_task_text, status_task_icon, arrow_task
 
 # Диалоговое окно создания нового Проекта
-def add_project_gui():
-    return tkinter.simpledialog.askstring("Новый Проект", "Введите имя проекта:")
+# Убрано из проекта
+# def add_project_gui():
+#     return tkinter.simpledialog.askstring("Новый Проект", "Введите имя проекта:")
 
 # Диалоговое окно создания новой Задачи
 def add_task_gui():
     return tkinter.simpledialog.askstring("Новая Задача", "Введите имя задачи:")
+
