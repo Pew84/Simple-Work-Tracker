@@ -5,11 +5,12 @@ import datetime
 import swt_utils
 import time
 
+
 swt_bd = "swt.db"
 
 # Определяем класс Task для управления задачами
 class Task:
-    def __init__(self, project_id, task_id, task_name, start_date, total_duration, start_time, timer_status, end_date, project_frame):
+    def __init__(self, project_id, task_id, task_name, start_date, total_duration, start_time, timer_status, end_date, project_frame, last_task):
         self.project_id = project_id  # id проекта в таблице проектов и имя таблицы для этого проекта с записями задач
         self.task_id = task_id
         self.task_name = task_name
@@ -21,13 +22,15 @@ class Task:
             self.start_time = datetime.datetime(1, 1, 1, 0, 0, 0)
         self.timer_status = timer_status
         self.end_date = end_date
+        self.last_task = last_task
         (self.task_frame,
          self.delete_task_widget,
          self.start_task_widget,
          self.timer_task_text,
          self.end_task_widget,
          self.begin_date_task_text,
-         self.status_task_widget) = gui_utils.create_task_gui(project_frame, self.task_name, self.start_date, self.end_date, self.timer_status)
+         self.status_task_widget,
+         self.arrow_task) = gui_utils.create_task_gui(project_frame, self.task_name, self.start_date, self.end_date, self.timer_status, self.last_task)
         # определяем функцию обработчика событий нажатия на кнопку Удаления Задачи
         self.delete_task_widget.bind("<Button-1>", self.delete_self)
         # определяем функцию обработчика событий нажатия на кнопку Старт таймера Задачи
@@ -99,8 +102,9 @@ class Task:
             # изменяем виджеты
             self.end_task_widget.itemconfig(self.end_task_widget.text_id, text="Завершено", fill="black")
             self.end_task_widget.itemconfig(self.end_task_widget.image_id, image=gui_utils.tk_end_task_ok_skin)
-            self.end_task_widget.grid(row=1, column=2, sticky="e", padx=0, pady=5)
-            self.start_task_widget.grid_forget()
+            self.end_task_widget.pack(padx=0)
+            self.status_task_widget.itemconfig(self.status_task_widget.image_id, image=gui_utils.tk_task_status_off_skin)
+            self.start_task_widget.pack_forget()
             print(f"Task '{self.task_name}' completed")
 
     def delete_self(self, event):
@@ -116,6 +120,11 @@ class Task:
                 if main.projects_obj[iter_x].tasks_obj != []:
                     if main.projects_obj[iter_x].tasks_obj[iter_y] == self:
                         print(main.projects_obj[iter_x].tasks_obj)
+                        # если задача была последняя в списке, но не единственная, то перериосвывем стрелу задачи выше
+                        if main.projects_obj[iter_x].tasks_obj[iter_y].last_task:
+                            if iter_y > 0:
+                                main.projects_obj[iter_x].tasks_obj[iter_y-1].last_task = True # признак последней задачи в списке
+                                main.projects_obj[iter_x].tasks_obj[iter_y-1].arrow_task.itemconfig(main.projects_obj[iter_x].tasks_obj[iter_y-1].arrow_task.image_id, image=gui_utils.tk_arrow_last_skin)
                         # Удаляем ссылку на обьект Task в свойстве tasks_obj родительского объекта Project
                         del main.projects_obj[iter_x].tasks_obj[iter_y]
                 iter_y = iter_y + 1
@@ -132,6 +141,7 @@ class Project:
         self.tasks = db_utils.get_list_tasks(project_id)
         self.status = True
         if end_date != None: self.status = False
+        self.visible_tasks = True
         self.tasks_obj = []  # список обьектов задач
         # создаем фрейм и графические элементы проекта
         (self.project_frame,
@@ -140,18 +150,26 @@ class Project:
          self.timer_project_text,
          self.end_project_widget,
          self.begin_date_project_text,
-         self.status_project_widget) = gui_utils.create_project_gui(main_frame_projects, self.name, self.start_date, self.end_date)
+         self.status_project_widget,
+         self.show_tasks_widget) = gui_utils.create_project_gui(main_frame_projects, self.name, self.start_date, self.end_date)
+
         # создаем список задач-проектов
         if self.tasks != []:
+            i = 1
+            last_task = False
             for tasks_table in self.tasks:
-                task = Task(self.id, tasks_table[0], tasks_table[1],tasks_table[2],tasks_table[3],tasks_table[4],tasks_table[5],tasks_table[6],self.project_frame)
+                if i == self.tasks.__len__(): last_task = True  # проверяем, является ли задача последней в списке
+                task = Task(self.id, tasks_table[0], tasks_table[1],tasks_table[2],tasks_table[3],tasks_table[4],tasks_table[5],tasks_table[6],self.project_frame, last_task)
                 self.tasks_obj.append(task)
-        # определяем функцию обработчика событий нжатия на кнопку Удаления проекта
+                i += 1
+        # определяем функцию обработчика событий нажатия на кнопку Удаления проекта
         self.delete_project_widget.bind("<Button-1>", self.delete_self)
-        # определяем функцию обработчика событий нжатия на кнопку Добавления Задачи
+        # определяем функцию обработчика событий нажатия на кнопку Добавления Задачи
         self.add_task_widget.bind("<Button-1>", self.add_task)
-        # определяем функцию обработчика событий нжатия на кнопку Завершения проекта
+        # определяем функцию обработчика событий нажатия на кнопку Завершения проекта
         self.end_project_widget.bind("<Button-1>", self.end_project)
+        # определяем функцию обработчика событий нажатия на кнопку Скрыть Задачи
+        self.show_tasks_widget.bind("<Button-1>", self.show_tasks)
 
     def delete_self(self, event):
         # удаляем таблицу Проекта c задачами из БД
@@ -176,8 +194,13 @@ class Project:
                 print(f"Task '{new_task_name}' added to project '{self.name}'")
                 # добавляем новую Задачу в БД
                 start_date, task_id = db_utils.add_record(self.id, new_task_name)  # self.id имя таблицы списка Задач текущего обьекта Проекта
+                # ищем последнюю задачу и перерисовываем в ней стрелку
+                for task in self.tasks_obj:
+                    if task.last_task:
+                        task.last_task = False  # помечаем как непоследнюю
+                        task.arrow_task.itemconfig(task.arrow_task.image_id, image=gui_utils.tk_arrow_skin)
                 # создаем новый обьект класса Task и рисуем его
-                task = Task(self.id, task_id, new_task_name, start_date, 0,"None",False,None,self.project_frame)
+                task = Task(self.id, task_id, new_task_name, start_date, 0,"None",False,None,self.project_frame, True)
                 # добавляем обьект в список обьектов класаа Main
                 self.tasks_obj.append(task)
             else:
@@ -194,27 +217,40 @@ class Project:
             db_utils.update_value("PROJECTS","end_date",self.id, self.end_date)
             # обновляем виджеты проекта
             self.begin_date_project_text.config(text=swt_utils.date_format(self.start_date)+' - '+swt_utils.date_format(self.end_date))
-            self.end_project_widget.itemconfig(self.end_project_widget.text_id, text="Завершено", fill="black")
+            self.end_project_widget.itemconfig(self.end_project_widget.text_id, text="Завершено", fill="white")
             self.end_project_widget.itemconfig(self.end_project_widget.image_id, image=gui_utils.tk_end_project_ok_skin)
-            #self.end_project_widget.grid(row=1, column=1, sticky="e", padx=10)
             self.add_task_widget.pack_forget()
             self.status_project_widget.itemconfig(self.status_project_widget.image_id, image=gui_utils.tk_project_status_off_skin)
             # изменяем статус проекта
             self.status = False
+            # скрываем, если выставлено скрытие завершенных проектов
+            if main.complete_button is False:
+                self.project_frame.pack_forget()
             print(f"Project '{self.name}' completed")
 
-    def show_tasks(self):
-        for task in self.tasks:
-            print(f"Task: {task.name}, Status: {'Completed' if task.end_date else 'Incomplete'}")
+    # показать/спрятать список задач проекта
+    def show_tasks(self, event):
+        if self.visible_tasks:
+            # меняем картинку кнопки
+            self.show_tasks_widget.itemconfig(self.show_tasks_widget.image_id, image=gui_utils.tk_show_tasks_off_skin)
+            for tasks in self.tasks_obj:
+                # прячем все задачи в данном проекте
+                tasks.task_frame.pack_forget()
+            self.visible_tasks = False
+        else:
+            # меняем картинку кнопки
+            self.show_tasks_widget.itemconfig(self.show_tasks_widget.image_id, image=gui_utils.tk_show_tasks_on_skin)
+            for tasks in self.tasks_obj:
+                # показываем все задачи в данном проекте
+                tasks.task_frame.pack(expand=True, fill='x', side='top', anchor="nw", padx=15, pady=0)
+            self.visible_tasks = True
 
-    def hide_tasks(self):
-        print("Tasks hidden")
 
 # Определяем основной класс Main для управления проектами
 class Main:
     def __init__(self):
         self.projects = db_utils.get_list_projects()  # загружаем из бд список проектов
-        self.complete_button = False  # кнопка отображения озавершенных проектов
+        self.complete_button = False  # кнопка отображения завершенных проектов
         self.current_button = True  # кнопка отображения активных проектов
         self.projects_obj = []  # список обьектов проектов
         # создаем грфические объекты основной панели
@@ -223,9 +259,9 @@ class Main:
          self.current_button_gui,
          self.add_project_gui) = gui_utils.create_main_frame()
         # определяем функцию обработчика событий нжатия на кнопку отображения завершенных задач
-        self.complete_button_gui.bind("<Button-1>", self.complete_view_buttton_click)
+        self.complete_button_gui.bind("<Button-1>", self.complete_view_button_click)
         # определяем функцию обработчика событий нжатия на кнопку отображения текущих задач
-        self.current_button_gui.bind("<Button-1>", self.current_view_buttton_click)
+        self.current_button_gui.bind("<Button-1>", self.current_view_button_click)
         # определяем функцию обработчика событий нжатия на кнопку Создания нового проекта
         self.add_project_gui.bind("<Button-1>", self.add_project_button_click)
         # создаем список обьектов-проектов по списку таблиц в базе данных
@@ -235,26 +271,62 @@ class Main:
                 self.projects_obj.append(project)
                 pass
 
-    # функция обработки события нажатия на кнопку отображения завершенных задач
-    def complete_view_buttton_click(self, event):
+    # функция обработки события нажатия на кнопку отображения завершенных проектов
+    def complete_view_button_click(self, event):
         if self.complete_button:
-            self.complete_button_gui.create_image(111, 21, anchor="center", image=gui_utils.tk_hide_button_skin)
-            self.complete_button_gui.create_text(111, 21, text="Завершенные", font=("Helvetica", 16), fill="black")
+            self.complete_button_gui.itemconfig(self.complete_button_gui.image_id, image=gui_utils.tk_hide_button_skin)
+            self.complete_button_gui.itemconfig(self.complete_button_gui.text_id, fill="black")
+            # скрываем все проекты
+            for projects in self.projects_obj:
+                projects.project_frame.pack_forget()
+            # и показываем только активные, если они должны показываться
+            if self.current_button == True:
+                for projects in self.projects_obj:
+                    if projects.end_date == None:
+                        projects.project_frame.pack(projects.project_frame.widget_pack_info)
             self.complete_button = False
         else:
-            self.complete_button_gui.create_image(111, 21, anchor="center", image=gui_utils.tk_show_button_skin)
-            self.complete_button_gui.create_text(111, 21, text="Завершенные", font=("Helvetica", 16), fill="white")
+            self.complete_button_gui.itemconfig(self.complete_button_gui.image_id, image=gui_utils.tk_show_button_skin)
+            self.complete_button_gui.itemconfig(self.complete_button_gui.text_id, fill="white")
+            # скрываем все проекты
+            for projects in self.projects_obj:
+                projects.project_frame.pack_forget()
+            # показываем завершенные и активные, если они должны показываться
+            for projects in self.projects_obj:
+                if projects.end_date != None:
+                    projects.project_frame.pack(projects.project_frame.widget_pack_info)
+                elif self.current_button == True:
+                    projects.project_frame.pack(projects.project_frame.widget_pack_info)
             self.complete_button = True
 
-    # функция обработки события нажатия на кнопку отображения Текущих задач
-    def current_view_buttton_click(self, event):
+    # функция обработки события нажатия на кнопку отображения Текущих проектов
+    def current_view_button_click(self, event):
         if self.current_button:
-            self.current_button_gui.create_image(111, 21, anchor="center", image=gui_utils.tk_hide_button_skin)
-            self.current_button_gui.create_text(111, 21, text="Текущие", font=("Helvetica", 16), fill="black")
+            # изменяем виджет кнопки
+            self.current_button_gui.itemconfig(self.current_button_gui.image_id, image=gui_utils.tk_hide_button_skin)
+            self.current_button_gui.itemconfig(self.current_button_gui.text_id, fill="black")
+            # скрываем все проекты
+            for projects in self.projects_obj:
+                projects.project_frame.pack_forget()
+            # и показываем только завершенные, если они должны показываться
+            if self.complete_button == True:
+                for projects in self.projects_obj:
+                    if projects.end_date != None:
+                        projects.project_frame.pack(projects.project_frame.widget_pack_info)
             self.current_button = False
         else:
-            self.current_button_gui.create_image(111, 21, anchor="center", image=gui_utils.tk_show_button_skin)
-            self.current_button_gui.create_text(111, 21, text="Текущие", font=("Helvetica", 16), fill="white")
+            # изменяем виджет кнопки
+            self.current_button_gui.itemconfig(self.current_button_gui.image_id, image=gui_utils.tk_show_button_skin)
+            self.current_button_gui.itemconfig(self.current_button_gui.text_id, fill="white")
+            # скрываем все проекты
+            for projects in self.projects_obj:
+                projects.project_frame.pack_forget()
+            # показываем активные и завершенные, если они должны показываться
+            for projects in self.projects_obj:
+                if projects.end_date == None:
+                    projects.project_frame.pack(projects.project_frame.widget_pack_info)
+                elif self.complete_button == True:
+                    projects.project_frame.pack(projects.project_frame.widget_pack_info)
             self.current_button = True
 
     # функция обработки события нажатия на кнопку Добваить новый проект
@@ -271,12 +343,6 @@ class Main:
             self.projects_obj.append(project)
         else:
             print("No project name entered.")
-
-    def export_db(self):
-        print("Exporting database...")
-
-    def import_db(self):
-        print("Importing database...")
 
 def main_thread():
     global main, conn
