@@ -24,8 +24,8 @@ def timer_format(seconds):
         result.append(f"{hours} ч")
     if minutes > 0:
         result.append(f"{minutes} мин")
-    if seconds > 0:
-        result.append(f"{seconds} сек")
+    #if seconds > 0:
+    result.append(f"{seconds} сек")
     # Если ничего не было добавлено, значит время 0 минут
     if not result:
         return "0 мин"

@@ -21,7 +21,7 @@ def run_gui():
 
     root = tkinter.Tk()  # Создаем главное окно приложения
     root.title("Simple Work Tracker")  # Устанавливаем заголовок окна
-    root.geometry("900x600")  # Устанавливаем размер окна
+    root.geometry("1100x600")  # Устанавливаем размер окна
 
     # Загружаем изображение и устанавливаем его как иконку
     favicon = tkinter.PhotoImage(file="skin/favicon.png")
@@ -206,7 +206,7 @@ def create_main_frame():
     canvas.bind('<Configure>', resize_frame)
     # Обработка прокрутки колеса мыши
     canvas.bind_all("<MouseWheel>", on_mouse_wheel)
-    root.geometry("901x600")  # меняем размер окна для срабатывания события event, чтобы все элементы растянулись на всю ширину окна
+    root.geometry("1101x600")  # меняем размер окна для срабатывания события event, чтобы все элементы растянулись на всю ширину окна
     return main_frame_projects, complete_view_button, current_view_button, add_project_button
 
 
@@ -387,10 +387,10 @@ def create_task_gui(main_project_frame, task_name, start_date, end_date, timer_s
     task_frame.pack_propagate(False)
     task_frame.pack(expand=True, fill='x', side='top', anchor="nw", padx=15, pady=0)
     # РАЗДЕЛ ГРАФИЧЕСКИХ ЭЛЕМЕНТОВ ПЛАШКИ УПРАВЛЕНИЯ ЗАДАЧЕЙ
-    task_frame.grid_columnconfigure(4, weight=5, minsize=80)  # Столбец 5 будет растягиваться по ширине
+    #task_frame.grid_columnconfigure(4, weight=5, minsize=80)  # Столбец 5 будет растягиваться по ширине
     task_frame.grid_columnconfigure(3, weight=1)  # Столбец 3 будет растягиваться по ширине
-    #task_frame.grid_columnconfigure(2, minsize=40, weight=0)  # 1 столбец фиксированной ширины
-    #task_frame.grid_columnconfigure(3, minsize=80)  # 2 столбец фиксированной ширины
+    task_frame.grid_columnconfigure(5, minsize=250, weight=0)  # 5 столбец фиксированной ширины
+    task_frame.grid_columnconfigure(4, minsize=250)  # 2 столбец фиксированной ширины
     # имитация пространства сверху панели задач
     tasks_space = tkinter.Frame(task_frame, bg="#cfcfcf", width=40, height=7)
     tasks_space.grid(row=0, column=1, columnspan=7, sticky="we")
@@ -454,8 +454,10 @@ def create_task_gui(main_project_frame, task_name, start_date, end_date, timer_s
     begin_date_task_text = tkinter.Label(task_frame, text=label_text, bg="#ececec", fg="#333333", font=task_data_font)
     begin_date_task_text.grid(row=1, column=4, rowspan=2)
     # текст общее время затраченное на Задачу
+    # test1 = tkinter.Frame(task_frame, bg="yellow")
+    # test1.grid(row=1, column=5, rowspan=2, sticky="we")
     timer_task_text = tkinter.Label(task_frame, text="0", bg="#ececec", fg="#333333", font=task_time_font)
-    timer_task_text.grid(row=1, column=5, rowspan=2, padx=10)
+    timer_task_text.grid(row=1, column=5, rowspan=2, sticky="e", padx=10)
     # иконка статуса Задачи
     status_task_icon = tkinter.Canvas(task_frame, bg="#ececec", width=24, height=24, highlightthickness=0)
     status_task_icon.grid(row=1, column=6, rowspan=2, padx=0)
