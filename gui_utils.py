@@ -287,6 +287,7 @@ def create_project_gui(main_frame_projects, project_name, begin_date, end_date, 
     # раздел графических элементов плашки управления проектами
     project_frame.grid_columnconfigure(3, weight=5, minsize=80)  # Столбец 3 будет растягиваться по ширине
     project_frame.grid_columnconfigure(2, weight=1)  # Столбец 2 будет растягиваться по ширине
+    project_frame.grid_columnconfigure(4, minsize=300, weight=0)  # Столбец будет растягиваться по ширине
     #project_frame.grid_columnconfigure(1, minsize=40, weight=0)  # 1 столбец фиксированной ширины
     # кнопка показа списка задач
     show_tasks_button = tkinter.Canvas(project_frame, bg="#cfcfcf", width=80, height=90, highlightthickness=0)
@@ -329,13 +330,13 @@ def create_project_gui(main_frame_projects, project_name, begin_date, end_date, 
     # текст с датой начала проекта
     begin_date_project_text = tkinter.Label(project_frame, text="", bg="#556c95", fg="#8cc939", font=project_data_font)
     if end_date is None:
-        begin_date_project_text.config(text=swt_utils.date_format(begin_date)+' - ...')
+        begin_date_project_text.config(text=swt_utils.date_format(begin_date)+' - ...      ')
     else:
         begin_date_project_text.config(text=swt_utils.date_format(begin_date)+' - '+swt_utils.date_format(end_date))
     begin_date_project_text.grid(row=0, column=3, rowspan=2)
     # текст общее время затраченное на проект
     timer_project_text = tkinter.Label(project_frame, text="", bg="#556c95", fg="#8cc939", font=project_time_font)
-    timer_project_text.grid(row=0, column=4, rowspan=2, padx=15)
+    timer_project_text.grid(row=0, column=4, rowspan=2, padx=15, sticky="e")
     # иконка статуса проекта
     status_project_icon = tkinter.Canvas(project_frame, bg="#556c95", width=30, height=30, highlightthickness=0)
     status_project_icon.grid(row=0, column=5, rowspan=2, padx=0)
@@ -387,10 +388,9 @@ def create_task_gui(main_project_frame, task_name, start_date, end_date, timer_s
     task_frame.pack_propagate(False)
     task_frame.pack(expand=True, fill='x', side='top', anchor="nw", padx=15, pady=0)
     # РАЗДЕЛ ГРАФИЧЕСКИХ ЭЛЕМЕНТОВ ПЛАШКИ УПРАВЛЕНИЯ ЗАДАЧЕЙ
-    #task_frame.grid_columnconfigure(4, weight=5, minsize=80)  # Столбец 5 будет растягиваться по ширине
-    task_frame.grid_columnconfigure(3, weight=1)  # Столбец 3 будет растягиваться по ширине
+    task_frame.grid_columnconfigure(3, minsize=5)  # Столбец 3 будет растягиваться по ширине
+    task_frame.grid_columnconfigure(4, weight=10, minsize=80)  # Столбец будет растягиваться по ширине
     task_frame.grid_columnconfigure(5, minsize=250, weight=0)  # 5 столбец фиксированной ширины
-    task_frame.grid_columnconfigure(4, minsize=250)  # 2 столбец фиксированной ширины
     # имитация пространства сверху панели задач
     tasks_space = tkinter.Frame(task_frame, bg="#cfcfcf", width=40, height=7)
     tasks_space.grid(row=0, column=1, columnspan=7, sticky="we")
@@ -407,7 +407,7 @@ def create_task_gui(main_project_frame, task_name, start_date, end_date, timer_s
     task_frame_left.create_image(10, 35, anchor="center", image=tk_task_frame_left_skin)  # Размещаем изображение
     # ферейм для размещения Имя задачи и кнопки удаления
     task_name_frame = tkinter.Frame(task_frame, bg="#ececec", width=30, height=30)
-    task_name_frame.grid(row=1, column=2, columnspan=2, sticky="w")
+    task_name_frame.grid(row=1, column=2, columnspan=3, sticky="w")
     # текст с названием Задачи
     name_task_text = tkinter.Label(task_name_frame, text=task_name, bg="#ececec", fg="black", font=task_name_font)
     name_task_text.bind("<Button-1>", edit_task_name)
@@ -450,12 +450,10 @@ def create_task_gui(main_project_frame, task_name, start_date, end_date, timer_s
     if end_date is None:
         label_text = swt_utils.date_format(start_date)
     else:
-        label_text = swt_utils.date_format(start_date)+' - '+swt_utils.date_format(end_date)
+        label_text = '      '+swt_utils.date_format(start_date)+' - '+swt_utils.date_format(end_date)
     begin_date_task_text = tkinter.Label(task_frame, text=label_text, bg="#ececec", fg="#333333", font=task_data_font)
-    begin_date_task_text.grid(row=1, column=4, rowspan=2)
+    begin_date_task_text.grid(row=2, column=4, sticky="n") # rowspan=2
     # текст общее время затраченное на Задачу
-    # test1 = tkinter.Frame(task_frame, bg="yellow")
-    # test1.grid(row=1, column=5, rowspan=2, sticky="we")
     timer_task_text = tkinter.Label(task_frame, text="0", bg="#ececec", fg="#333333", font=task_time_font)
     timer_task_text.grid(row=1, column=5, rowspan=2, sticky="e", padx=10)
     # иконка статуса Задачи
@@ -480,6 +478,7 @@ def create_task_gui(main_project_frame, task_name, start_date, end_date, timer_s
 #     return tkinter.simpledialog.askstring("Новый Проект", "Введите имя проекта:")
 
 # Диалоговое окно создания новой Задачи
-def add_task_gui():
-    return tkinter.simpledialog.askstring("Новая Задача", "Введите имя задачи:")
+# Убрано из проекта
+# def add_task_gui():
+#     return tkinter.simpledialog.askstring("Новая Задача", "Введите имя задачи:")
 
