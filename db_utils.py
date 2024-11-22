@@ -39,7 +39,8 @@ def create_table_projects(conn):
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         project_name TEXT,
         start_date DATE,
-        end_date DATE
+        end_date DATE,
+        payment TEXT
     );
     """
     cursor.execute(create_table_sql)  # Выполняем запрос на создание таблицы
@@ -58,7 +59,8 @@ def create_table_tasks(conn, table_name):
         total_duration INTEGER,
         start_time INTEGER,
         timer_status BOOLEAN,
-        end_date TEXT
+        end_date TEXT,
+        payment TEXT
     );
     """
     cursor.execute(create_table_sql)  # Выполняем запрос на создание таблицы

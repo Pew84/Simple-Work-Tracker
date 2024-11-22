@@ -37,6 +37,12 @@ class Task:
         self.start_task_widget.bind("<Button-1>", self.start_timer)
         # определяем функцию обработчика событий нажатия на кнопку завершения Задачи
         self.end_task_widget.bind("<Button-1>", self.end_task)
+        # определяем функцию обработчика событий при наведении мыши на кнопку Старт таймера Задачи
+        self.start_task_widget.bind("<Enter>", self.hover_on_start_task)
+        self.start_task_widget.bind("<Leave>", self.hover_off_start_task)
+        # определяем функцию обработчика событий при наведении мыши на кнопку завершения Задачи
+        self.end_task_widget.bind("<Enter>", self.hover_on_end_task)
+        self.end_task_widget.bind("<Leave>", self.hover_off_end_task)
 
     def start_timer(self, event):
         if self.end_date is None:  # если задача не завершена
@@ -131,7 +137,40 @@ class Task:
             iter_x = iter_x + 1
         print(f"Task '{self.task_name}' deleted")
 
-# Определяем класс Project для управления проектами
+    # подсветка кнопок при наведении мыши на кнопку Старт таймера Задачи
+    def hover_on_start_task(self, event):
+        # Замена изображения при наведении курсора
+        if self.end_date is None:
+            if self.timer_status:
+                self.start_task_widget.itemconfig(self.start_task_widget.image_id, image=gui_utils.tk_start_task_pause_hover_skin)
+            else:
+                self.start_task_widget.itemconfig(self.start_task_widget.image_id, image=gui_utils.tk_start_task_hover_skin)
+    def hover_off_start_task(self, event):
+        # Возвращение старого изображения при убирании курсора
+        if self.end_date is None:
+            if self.timer_status:
+                self.start_task_widget.itemconfig(self.start_task_widget.image_id, image=gui_utils.tk_start_task_pause_skin)
+            else:
+                self.start_task_widget.itemconfig(self.start_task_widget.image_id, image=gui_utils.tk_start_task_skin)
+
+    # подсветка кнопок при наведении мыши на кнопку Завершения Задачи
+    def hover_on_end_task(self, event):
+        # Замена изображения при наведении курсора
+        if self.end_date is None:
+            if self.timer_status:
+                self.end_task_widget.itemconfig(self.end_task_widget.image_id, image=gui_utils.tk_end_task_active_hover_skin)
+            else:
+                self.end_task_widget.itemconfig(self.end_task_widget.image_id, image=gui_utils.tk_end_task_hover_skin)
+    def hover_off_end_task(self, event):
+        # Возвращение старого изображения при убирании курсора
+        if self.end_date is None:
+            if self.timer_status:
+                self.end_task_widget.itemconfig(self.end_task_widget.image_id, image=gui_utils.tk_end_task_active_skin)
+            else:
+                self.end_task_widget.itemconfig(self.end_task_widget.image_id, image=gui_utils.tk_end_task_skin)
+
+
+            # Определяем класс Project для управления проектами
 class Project:
     def __init__(self, main_frame_projects, project_id, project_name, begin_date, end_date):
         self.name = project_name
@@ -170,6 +209,15 @@ class Project:
         self.end_project_widget.bind("<Button-1>", self.end_project)
         # определяем функцию обработчика событий нажатия на кнопку Скрыть Задачи
         self.show_tasks_widget.bind("<Button-1>", self.show_tasks)
+        # определяем функцию обработчика событий при наведении мыши на кнопку Добавления Задачи
+        self.add_task_widget.bind("<Enter>", self.hover_on_add_task)
+        self.add_task_widget.bind("<Leave>", self.hover_off_add_task)
+        # определяем функцию обработчика событий при наведении мыши на кнопку завершения Задачи
+        self.end_project_widget.bind("<Enter>", self.hover_on_end_project)
+        self.end_project_widget.bind("<Leave>", self.hover_off_end_project)
+        # определяем функцию обработчика событий при наведении мыши на кнопку Показать Задачи
+        self.show_tasks_widget.bind("<Enter>", self.hover_on_show_tasks)
+        self.show_tasks_widget.bind("<Leave>", self.hover_off_show_tasks)
 
     def delete_self(self, event):
         # удаляем таблицу Проекта c задачами из БД
@@ -206,7 +254,6 @@ class Project:
                 self.tasks_obj.append(task)
             else:
                 print("No Task name entered.")
-
 
     def end_project(self, event):
         if self.status is not False:
@@ -246,6 +293,39 @@ class Project:
                 tasks.task_frame.pack(expand=True, fill='x', side='top', anchor="nw", padx=15, pady=0)
             self.visible_tasks = True
 
+    # подсветка кнопок при наведении мыши на кнопку Добавления Задачи
+    def hover_on_add_task(self, event):
+        # Замена изображения при наведении курсора
+        if self.end_date is None:
+            self.add_task_widget.itemconfig(self.add_task_widget.image_id, image=gui_utils.tk_add_task_hover_skin)
+    def hover_off_add_task(self, event):
+        # Возвращение старого изображения при убирании курсора
+        if self.end_date is None:
+            self.add_task_widget.itemconfig(self.add_task_widget.image_id, image=gui_utils.tk_add_task_skin)
+
+    # подсветка кнопок при наведении мыши на кнопку Завершения проекта
+    def hover_on_end_project(self, event):
+        # Замена изображения при наведении курсора
+        if self.end_date is None:
+            self.end_project_widget.itemconfig(self.end_project_widget.image_id, image=gui_utils.tk_end_project_hover_skin)
+    def hover_off_end_project(self, event):
+        # Возвращение старого изображения при убирании курсора
+        if self.end_date is None:
+            self.end_project_widget.itemconfig(self.end_project_widget.image_id, image=gui_utils.tk_end_project_skin)
+
+    # подсветка кнопок при наведении мыши на кнопку Показать задачи
+    def hover_on_show_tasks(self, event):
+        # Замена изображения при наведении курсора
+        if self.visible_tasks:
+            self.show_tasks_widget.itemconfig(self.show_tasks_widget.image_id, image=gui_utils.tk_show_tasks_on_hover_skin)
+        else:
+            self.show_tasks_widget.itemconfig(self.show_tasks_widget.image_id, image=gui_utils.tk_show_tasks_off_hover_skin)
+    def hover_off_show_tasks(self, event):
+        # Возвращение старого изображения при убирании курсора
+        if self.visible_tasks:
+            self.show_tasks_widget.itemconfig(self.show_tasks_widget.image_id, image=gui_utils.tk_show_tasks_on_skin)
+        else:
+            self.show_tasks_widget.itemconfig(self.show_tasks_widget.image_id, image=gui_utils.tk_show_tasks_off_skin)
 
 # Определяем основной класс Main для управления проектами
 class Main:
@@ -256,15 +336,24 @@ class Main:
         self.projects_obj = []  # список обьектов проектов
         # создаем грфические объекты основной панели
         (self.main_frame_projects,
-         self.complete_button_gui,
-         self.current_button_gui,
-         self.add_project_gui) = gui_utils.create_main_frame()
+         self.complete_button_widget,
+         self.current_button_widget,
+         self.add_project_widget) = gui_utils.create_main_frame()
         # определяем функцию обработчика событий нжатия на кнопку отображения завершенных задач
-        self.complete_button_gui.bind("<Button-1>", self.complete_view_button_click)
+        self.complete_button_widget.bind("<Button-1>", self.complete_view_button_click)
         # определяем функцию обработчика событий нжатия на кнопку отображения текущих задач
-        self.current_button_gui.bind("<Button-1>", self.current_view_button_click)
+        self.current_button_widget.bind("<Button-1>", self.current_view_button_click)
         # определяем функцию обработчика событий нжатия на кнопку Создания нового проекта
-        self.add_project_gui.bind("<Button-1>", self.add_project_button_click)
+        self.add_project_widget.bind("<Button-1>", self.add_project_button_click)
+        # определяем функцию обработчика событий при наведении мыши на кнопку Добваить новый проект
+        self.add_project_widget.bind("<Enter>", self.hover_on_add_project)
+        self.add_project_widget.bind("<Leave>", self.hover_off_add_project)
+        # определяем функцию обработчика событий при наведении мыши на кнопку отображения завершенных проектов
+        self.complete_button_widget.bind("<Enter>", self.hover_on_complete_project)
+        self.complete_button_widget.bind("<Leave>", self.hover_off_complete_project)
+        # определяем функцию обработчика событий при наведении мыши на кнопку отображения текущих проектов
+        self.current_button_widget.bind("<Enter>", self.hover_on_current_project)
+        self.current_button_widget.bind("<Leave>", self.hover_off_current_project)
         # создаем список обьектов-проектов по списку таблиц в базе данных
         if self.projects != []:
             for project_table in self.projects:
@@ -272,11 +361,12 @@ class Main:
                 self.projects_obj.append(project)
                 pass
 
+
     # функция обработки события нажатия на кнопку отображения завершенных проектов
     def complete_view_button_click(self, event):
         if self.complete_button:
-            self.complete_button_gui.itemconfig(self.complete_button_gui.image_id, image=gui_utils.tk_hide_button_skin)
-            self.complete_button_gui.itemconfig(self.complete_button_gui.text_id, fill="black")
+            self.complete_button_widget.itemconfig(self.complete_button_widget.image_id, image=gui_utils.tk_hide_button_skin)
+            self.complete_button_widget.itemconfig(self.complete_button_widget.text_id, fill="black")
             # скрываем все проекты
             for projects in self.projects_obj:
                 projects.project_frame.pack_forget()
@@ -287,8 +377,8 @@ class Main:
                         projects.project_frame.pack(projects.project_frame.widget_pack_info)
             self.complete_button = False
         else:
-            self.complete_button_gui.itemconfig(self.complete_button_gui.image_id, image=gui_utils.tk_show_button_skin)
-            self.complete_button_gui.itemconfig(self.complete_button_gui.text_id, fill="white")
+            self.complete_button_widget.itemconfig(self.complete_button_widget.image_id, image=gui_utils.tk_show_button_skin)
+            self.complete_button_widget.itemconfig(self.complete_button_widget.text_id, fill="white")
             # скрываем все проекты
             for projects in self.projects_obj:
                 projects.project_frame.pack_forget()
@@ -304,8 +394,8 @@ class Main:
     def current_view_button_click(self, event):
         if self.current_button:
             # изменяем виджет кнопки
-            self.current_button_gui.itemconfig(self.current_button_gui.image_id, image=gui_utils.tk_hide_button_skin)
-            self.current_button_gui.itemconfig(self.current_button_gui.text_id, fill="black")
+            self.current_button_widget.itemconfig(self.current_button_widget.image_id, image=gui_utils.tk_hide_button_skin)
+            self.current_button_widget.itemconfig(self.current_button_widget.text_id, fill="black")
             # скрываем все проекты
             for projects in self.projects_obj:
                 projects.project_frame.pack_forget()
@@ -317,8 +407,8 @@ class Main:
             self.current_button = False
         else:
             # изменяем виджет кнопки
-            self.current_button_gui.itemconfig(self.current_button_gui.image_id, image=gui_utils.tk_show_button_skin)
-            self.current_button_gui.itemconfig(self.current_button_gui.text_id, fill="white")
+            self.current_button_widget.itemconfig(self.current_button_widget.image_id, image=gui_utils.tk_show_button_skin)
+            self.current_button_widget.itemconfig(self.current_button_widget.text_id, fill="white")
             # скрываем все проекты
             for projects in self.projects_obj:
                 projects.project_frame.pack_forget()
@@ -333,7 +423,7 @@ class Main:
     # функция обработки события нажатия на кнопку Добваить новый проект
     def add_project_button_click(self, event):
         # получем имя через диалоговое окно для ввода имени проекта
-        #new_project_name = gui_utils.add_project_gui()
+        #new_project_name = gui_utils.add_project_widget()
         new_project_name = "New Project"
         if new_project_name:
             print(f"Project Name: {new_project_name}")
@@ -345,6 +435,42 @@ class Main:
             self.projects_obj.append(project)
         else:
             print("No project name entered.")
+
+    # подсветка кнопок при наведении мыши на кнопку Завершения проекта
+    def hover_on_add_project(self, event):
+        # Замена изображения при наведении курсора
+        self.add_project_widget.itemconfig(self.add_project_widget.image_id, image=gui_utils.tk_add_project_hover_skin)
+    def hover_off_add_project(self, event):
+        # Возвращение старого изображения при убирании курсора
+        self.add_project_widget.itemconfig(self.add_project_widget.image_id, image=gui_utils.tk_add_project_skin)
+
+    # подсветка кнопок при наведении мыши на кнопку отображения завершенных проектов
+    def hover_on_complete_project(self, event):
+        # Замена изображения при наведении курсора
+        if self.complete_button:
+            self.complete_button_widget.itemconfig(self.complete_button_widget.image_id, image=gui_utils.tk_show_button_hover_skin)
+        else:
+            self.complete_button_widget.itemconfig(self.complete_button_widget.image_id, image=gui_utils.tk_hide_button_hover_skin)
+    def hover_off_complete_project(self, event):
+        # Возвращение старого изображения при убирании курсора
+        if self.complete_button:
+            self.complete_button_widget.itemconfig(self.complete_button_widget.image_id, image=gui_utils.tk_show_button_skin)
+        else:
+            self.complete_button_widget.itemconfig(self.complete_button_widget.image_id, image=gui_utils.tk_hide_button_skin)
+
+    # подсветка кнопок при наведении мыши на кнопку отображения текущих проектов
+    def hover_on_current_project(self, event):
+        # Замена изображения при наведении курсора
+        if self.current_button:
+            self.current_button_widget.itemconfig(self.current_button_widget.image_id, image=gui_utils.tk_show_button_hover_skin)
+        else:
+            self.current_button_widget.itemconfig(self.current_button_widget.image_id, image=gui_utils.tk_hide_button_hover_skin)
+    def hover_off_current_project(self, event):
+        # Возвращение старого изображения при убирании курсора
+        if self.current_button:
+            self.current_button_widget.itemconfig(self.current_button_widget.image_id, image=gui_utils.tk_show_button_skin)
+        else:
+            self.current_button_widget.itemconfig(self.current_button_widget.image_id, image=gui_utils.tk_hide_button_skin)
 
 def main_thread():
     global main, conn

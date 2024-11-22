@@ -63,19 +63,32 @@ def run_gui():
     task_time_font = tkinter.font.Font(family="Onest", size=14, weight="bold")
 
     # блок загрузки изображений для интерфейса
+    # главный фрейм
+    global tk_add_project_skin
+    tk_add_project_skin = img_load("add_project.png")
+    global tk_add_project_hover_skin
+    tk_add_project_hover_skin = img_load("add_project_hover.png")
+    global tk_hide_button_skin
+    tk_hide_button_skin = img_load("hide_button.png")
+    global tk_hide_button_hover_skin
+    tk_hide_button_hover_skin = img_load("hide_button_hover.png")
+    global tk_show_button_skin
+    tk_show_button_skin = img_load("show_button.png")
+    global tk_show_button_hover_skin
+    tk_show_button_hover_skin = img_load("show_button_hover.png")
     # фрейм проекта
     global tk_show_tasks_on_skin
     tk_show_tasks_on_skin = img_load("show_tasks_on.png")
+    global tk_show_tasks_on_hover_skin
+    tk_show_tasks_on_hover_skin = img_load("show_tasks_on_hover.png")
     global tk_show_tasks_off_skin
     tk_show_tasks_off_skin = img_load("show_tasks_off.png")
-    global tk_add_project_skin
-    tk_add_project_skin = img_load("add_project.png")
-    global tk_hide_button_skin
-    tk_hide_button_skin = img_load("hide_button.png")
-    global tk_show_button_skin
-    tk_show_button_skin = img_load("show_button.png")
+    global tk_show_tasks_off_hover_skin
+    tk_show_tasks_off_hover_skin = img_load("show_tasks_off_hover.png")
     global tk_add_task_skin
     tk_add_task_skin = img_load("add_task.png")
+    global tk_add_task_hover_skin
+    tk_add_task_hover_skin = img_load("add_task_hover.png")
     global tk_add_task_off_skin
     tk_add_task_off_skin = img_load("add_task_off.png")
     global tk_del_project_skin
@@ -84,6 +97,8 @@ def run_gui():
     tk_del_task_skin = img_load("del_task.png")
     global tk_end_project_skin
     tk_end_project_skin = img_load("end_project.png")
+    global tk_end_project_hover_skin
+    tk_end_project_hover_skin = img_load("end_project_hover.png")
     global tk_end_project_ok_skin
     tk_end_project_ok_skin = img_load("end_project_ok.png")
     global tk_project_status_on_skin
@@ -103,14 +118,22 @@ def run_gui():
     # фрейм задачи
     global tk_end_task_skin
     tk_end_task_skin = img_load("end_task.png")
+    global tk_end_task_hover_skin
+    tk_end_task_hover_skin = img_load("end_task_hover.png")
     global tk_end_task_ok_skin
     tk_end_task_ok_skin = img_load("end_task_ok.png")
     global tk_end_task_active_skin
     tk_end_task_active_skin = img_load("end_task_active.png")
+    global tk_end_task_active_hover_skin
+    tk_end_task_active_hover_skin = img_load("end_task_active_hover.png")
     global tk_start_task_skin
     tk_start_task_skin = img_load("start_task.png")
     global tk_start_task_pause_skin
     tk_start_task_pause_skin = img_load("start_task_pause.png")
+    global tk_start_task_hover_skin
+    tk_start_task_hover_skin = img_load("start_task_hover.png")
+    global tk_start_task_pause_hover_skin
+    tk_start_task_pause_hover_skin = img_load("start_task_pause_hover.png")
     global tk_start_task_end_skin
     tk_start_task_end_skin = img_load("start_task_end.png")
     global tk_task_status_pause_skin
@@ -127,14 +150,6 @@ def run_gui():
     tk_arrow_skin = img_load("arrow.png")
     global tk_arrow_last_skin
     tk_arrow_last_skin = img_load("arrow_last.png")
-
-    def on_complete():
-        print("Complete button clicked")  # Функция для обработки нажатия кнопки завершения
-        db_utils.get_list_tasks()
-
-    def on_current():
-        print("Current button clicked")  # Функция для обработки нажатия кнопки текущих задач
-        db_utils.get_list_projects()
 
     root.mainloop()  # Запускаем основной цикл обработки событий для окна
 
@@ -180,7 +195,7 @@ def create_main_frame():
     add_project_button = tkinter.Canvas(main_frame, bg="#efefef", width=80, height=80, highlightthickness=0)
     add_project_button.pack(side="right", anchor="sw", padx=50, pady=0)
     # Размещаем изображение в Canvas
-    add_project_button.create_image(40, 40, anchor="center", image=tk_add_project_skin)
+    add_project_button.image_id = add_project_button.create_image(40, 40, anchor="center", image=tk_add_project_skin)
 
     # Создаем холст для области списка проектов
     canvas = tkinter.Canvas(root, bg="#efefef", highlightthickness=0) #, scrollregion=(0, 0, 1000, 1000))
@@ -316,7 +331,7 @@ def create_project_gui(main_frame_projects, project_name, begin_date, end_date, 
     add_task_button = tkinter.Canvas(project_addend_frame, bg="#556c95", width=34, height=44, highlightthickness=0)
     add_task_button.pack(side=tkinter.LEFT, padx=5, pady=0)
     if end_date is None:
-        add_task_button.create_image(17, 17, anchor="center", image=tk_add_task_skin)  # Размещаем изображение в Canvas
+        add_task_button.image_id = add_task_button.create_image(17, 17, anchor="center", image=tk_add_task_skin)  # Размещаем изображение в Canvas
     # кнопка завершения проекта
     end_project_button = tkinter.Canvas(project_addend_frame, bg="#556c95", width=122, height=44, highlightthickness=0)
     end_project_button.pack(side=tkinter.LEFT, padx=5, pady=0)
