@@ -86,9 +86,9 @@ def add_project(table_name):
     date_now = datetime.datetime.now().strftime('%Y-%m-%d')
     # создаем запись в таблице PROJECTS
     cursor.execute(f"""
-        INSERT INTO PROJECTS (project_name, start_date) 
-        VALUES (?, ?);
-        """, (table_name, date_now))
+        INSERT INTO PROJECTS (project_name, start_date, payment) 
+        VALUES (?, ?, ?);
+        """, (table_name, date_now, "wait"))
     # Получение id только что вставленной записи
     id = cursor.lastrowid
     # создаем таблицу Задач для нового проекта
@@ -97,7 +97,7 @@ def add_project(table_name):
     cursor.close()  # Закрываем курсор
     print(f"New project added to table Projects and create new table {id}")
     conn.close()
-    return (id, table_name, date_now, None)
+    return (id, table_name, date_now, None, 'wait')
 
 # Функция для добавления записи в таблицу задач
 def add_record(table_id, task_name):
@@ -106,10 +106,10 @@ def add_record(table_id, task_name):
     date_now = datetime.date.today().strftime('%Y-%m-%d')
     total_duration = 0
     add_record_sql = f"""
-    INSERT INTO '{table_id}' (task_name, start_date, total_duration, start_time)
-    VALUES (?, ?, ?, ?);
+    INSERT INTO '{table_id}' (task_name, start_date, total_duration, start_time, payment)
+    VALUES (?, ?, ?, ?, ?);
     """
-    cursor.execute(add_record_sql, (task_name, date_now, total_duration, "None"))
+    cursor.execute(add_record_sql, (task_name, date_now, total_duration, "None", "wait"))
     # Получение id только что вставленной записи
     task_id = cursor.lastrowid
     conn.commit()  # Фиксируем изменения в базе данных

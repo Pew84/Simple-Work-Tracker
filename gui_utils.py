@@ -115,6 +115,18 @@ def run_gui():
     tk_rectangleSW_skin = img_load("rectangleSW.png")
     global tk_rectangleSE_skin
     tk_rectangleSE_skin = img_load("rectangleSE.png")
+    global tk_project_pay_free_skin
+    tk_project_pay_free_skin = img_load("project_pay_free.png")
+    global tk_project_pay_free_hover_skin
+    tk_project_pay_free_hover_skin = img_load("project_pay_free_hover.png")
+    global tk_project_pay_ok_skin
+    tk_project_pay_ok_skin = img_load("project_pay_ok.png")
+    global tk_project_pay_ok_hover_skin
+    tk_project_pay_ok_hover_skin = img_load("project_pay_ok_hover.png")
+    global tk_project_pay_wait_skin
+    tk_project_pay_wait_skin = img_load("project_pay_wait.png")
+    global tk_project_pay_wait_hover_skin
+    tk_project_pay_wait_hover_skin = img_load("project_pay_wait_hover.png")
     # фрейм задачи
     global tk_end_task_skin
     tk_end_task_skin = img_load("end_task.png")
@@ -150,6 +162,20 @@ def run_gui():
     tk_arrow_skin = img_load("arrow.png")
     global tk_arrow_last_skin
     tk_arrow_last_skin = img_load("arrow_last.png")
+    global tk_task_pay_free_skin
+    tk_task_pay_free_skin = img_load("task_pay_free.png")
+    global tk_task_pay_free_hover_skin
+    tk_task_pay_free_hover_skin = img_load("task_pay_free_hover.png")
+    global tk_task_pay_ok_skin
+    tk_task_pay_ok_skin = img_load("task_pay_ok.png")
+    global tk_task_pay_ok_hover_skin
+    tk_task_pay_ok_hover_skin = img_load("task_pay_ok_hover.png")
+    global tk_task_pay_wait_skin
+    tk_task_pay_wait_skin = img_load("task_pay_wait.png")
+    global tk_task_pay_wait_hover_skin
+    tk_task_pay_wait_hover_skin = img_load("task_pay_wait_hover.png")
+
+
 
     root.mainloop()  # Запускаем основной цикл обработки событий для окна
 
@@ -309,7 +335,7 @@ def create_project_gui(main_frame_projects, project_name, begin_date, end_date, 
     show_tasks_button.grid(row=0, column=0, rowspan=2)
     show_tasks_button.image_id = show_tasks_button.create_image(40, 45, anchor="center", image=tk_show_tasks_on_skin)  # Размещаем изображение в Canvas
     # ферейм для размещения Имя проекта и кнопки удаления
-    project_name_frame = tkinter.Frame(project_frame, bg="#556c95", width=40, height=40)
+    project_name_frame = tkinter.Frame(project_frame, bg="#556c95", width=40, height=44)
     project_name_frame.grid(row=0, column=1, columnspan=2, sticky="w")
     # текст с названием проекта
     name_project_text = tkinter.Label(project_name_frame, text=project_name, bg="#556c95", fg="white", font=project_name_font)
@@ -317,23 +343,34 @@ def create_project_gui(main_frame_projects, project_name, begin_date, end_date, 
     name_project_text.pack(side=tkinter.LEFT, anchor=tkinter.SW, padx=15)
     # виджет для редактирования текста
     name_project_text_edit = tkinter.Entry(project_name_frame, bg="#556c95", fg="white", font=project_name_font, relief=tkinter.FLAT, insertbackground="white", selectbackground="#8899b6")
-    name_project_text_edit.bind("<KeyRelease>", adjust_entry_width)  # Перехватываем событие при вводе текста)
-    name_project_text_edit.bind("<Return>", save_project_name)
+    name_project_text_edit.bind("<KeyRelease>", adjust_entry_width)  # Перехватываем событие при вводе текста
+    name_project_text_edit.bind("<Return>", save_project_name) # функция при завершении ввода текста
     # кнопка удаления проекта
     delete_project_button = tkinter.Canvas(project_name_frame, bg="#556c95", width=40, height=40, highlightthickness=0)
     delete_project_button.pack_propagate(True)
     delete_project_button.pack(side=tkinter.RIGHT)
     delete_project_button.create_image(20, 20, anchor="center", image=tk_del_project_skin)  # Размещаем изображение в Canvas
-    # ферейм для размещения кнопок добавления задачи и завершения проекта
+    # ферейм для размещения Cтатуса оплаты, кнопок добавления задачи и завершения проекта
     project_addend_frame = tkinter.Frame(project_frame, bg="#556c95", width=40, height=44)
     project_addend_frame.grid(row=1, column=1, sticky="sw", padx=10, pady=0)
+    # кнопка статус оплаты проекта
+    project_payment_button = tkinter.Canvas(project_addend_frame, bg="#556c95", width=43, height=40, highlightthickness=0)
+    project_payment_button.pack_propagate(True)
+    project_payment_button.pack(side=tkinter.LEFT, anchor=tkinter.CENTER, padx=0, pady=0)
+    # Размещаем изображение в Canvas в зависимости от статуса оплаты
+    if project_class.project_pay == 'wait':
+        project_payment_button.image_id = project_payment_button.create_image(24, 17, anchor="center", image=tk_project_pay_wait_skin)
+    if project_class.project_pay == 'ok':
+        project_payment_button.image_id = project_payment_button.create_image(24, 17, anchor="center", image=tk_project_pay_ok_skin)
+    if project_class.project_pay == 'free':
+        project_payment_button.image_id = project_payment_button.create_image(24, 17, anchor="center", image=tk_project_pay_free_skin)
     # кнопка добавления задачи bg="#556c95"
-    add_task_button = tkinter.Canvas(project_addend_frame, bg="#556c95", width=34, height=44, highlightthickness=0)
-    add_task_button.pack(side=tkinter.LEFT, padx=5, pady=0)
+    add_task_button = tkinter.Canvas(project_addend_frame, bg="#556c95", width=34, height=42, highlightthickness=0)
+    add_task_button.pack(side=tkinter.LEFT, anchor=tkinter.S, padx=5, pady=0)
     if end_date is None:
         add_task_button.image_id = add_task_button.create_image(17, 17, anchor="center", image=tk_add_task_skin)  # Размещаем изображение в Canvas
     # кнопка завершения проекта
-    end_project_button = tkinter.Canvas(project_addend_frame, bg="#556c95", width=122, height=44, highlightthickness=0)
+    end_project_button = tkinter.Canvas(project_addend_frame, bg="#556c95", width=122, height=42, highlightthickness=0)
     end_project_button.pack(side=tkinter.LEFT, padx=5, pady=0)
     if end_date is None:
         end_project_button.image_id = end_project_button.create_image(61, 17, anchor="center", image=tk_end_project_skin)  # Размещаем изображение в Canvas
@@ -363,7 +400,15 @@ def create_project_gui(main_frame_projects, project_name, begin_date, end_date, 
     project_right_frame = tkinter.Canvas(project_frame, bg="#cfcfcf", width=20, height=90, highlightthickness=0)
     project_right_frame.grid(row=0, column=6, rowspan=2, padx=0)
     project_right_frame.create_image(10, 45, anchor="center", image=tk_profect_frame_right_skin)
-    return main_project_frame, delete_project_button, add_task_button, timer_project_text, end_project_button, begin_date_project_text, status_project_icon, show_tasks_button
+    return (main_project_frame,
+            delete_project_button,
+            add_task_button,
+            timer_project_text,
+            end_project_button,
+            begin_date_project_text,
+            status_project_icon,
+            show_tasks_button,
+            project_payment_button)
 
 # рисуем интерфейс задачи
 def create_task_gui(main_project_frame, task_name, start_date, end_date, timer_status, last_task, task_class):
@@ -398,7 +443,8 @@ def create_task_gui(main_project_frame, task_name, start_date, end_date, timer_s
         text_width = font.measure(name_task_text_edit.get())
         name_task_text_edit.config(width=max(text_width // font.measure("0") + 1, 1))  # +1 для корректировки
 
-    # # фрейм управления задачей
+
+    # фрейм управления задачей
     task_frame = tkinter.Frame(main_project_frame, bg="#ececec", width=800, height=60)
     task_frame.pack_propagate(False)
     task_frame.pack(expand=True, fill='x', side='top', anchor="nw", padx=15, pady=0)
@@ -435,9 +481,20 @@ def create_task_gui(main_project_frame, task_name, start_date, end_date, timer_s
     delete_task_button = tkinter.Canvas(task_name_frame, bg="#ececec", width=30, height=30, highlightthickness=0)
     delete_task_button.pack(side=tkinter.RIGHT, padx=5)
     delete_task_button.create_image(15, 15, anchor="center", image=tk_del_task_skin)  # Размещаем изображение
-    # ферейм для размещения кнопок старта и завершения
+    # ферейм для размещения кнопки оплаты, кнопок старта и завершения
     task_startend_frame = tkinter.Frame(task_frame, bg="#ececec", width=30, height=30)
     task_startend_frame.grid(row=2, column=2, sticky="w")
+    # кнопка статус оплаты проекта
+    task_payment_button = tkinter.Canvas(task_startend_frame, bg="#ececec", width=33, height=35, highlightthickness=0)
+    task_payment_button.pack_propagate(True)
+    task_payment_button.pack(side=tkinter.LEFT, padx=0, pady=0)
+    # Размещаем изображение в Canvas в зависимости от статуса оплаты
+    if task_class.task_pay == 'wait':
+        task_payment_button.image_id = task_payment_button.create_image(15, 14, anchor="center", image=tk_task_pay_wait_skin)
+    if task_class.task_pay == 'ok':
+        task_payment_button.image_id = task_payment_button.create_image(15, 14, anchor="center", image=tk_task_pay_ok_skin)
+    if task_class.task_pay == 'free':
+        task_payment_button.image_id = task_payment_button.create_image(15, 14, anchor="center", image=tk_task_pay_free_skin)
     # кнопка старт/пауза Задачи
     start_task_button = tkinter.Canvas(task_startend_frame, bg="#ececec", width=28, height=35, highlightthickness=0)
     if end_date is None:
@@ -485,7 +542,15 @@ def create_task_gui(main_project_frame, task_name, start_date, end_date, timer_s
     task_frame_right = tkinter.Canvas(task_frame, bg="#cfcfcf", width=20, height=70, highlightthickness=0)
     task_frame_right.grid(row=1, column=7, rowspan=2)
     task_frame_right.create_image(10, 35, anchor="center", image=tk_task_frame_right_skin)  # Размещаем изображение
-    return task_frame, delete_task_button, start_task_button, timer_task_text, end_task_button, begin_date_task_text, status_task_icon, arrow_task
+    return (task_frame,
+            delete_task_button,
+            start_task_button,
+            timer_task_text,
+            end_task_button,
+            begin_date_task_text,
+            status_task_icon,
+            arrow_task,
+            task_payment_button)
 
 # Диалоговое окно создания нового Проекта
 # Убрано из проекта

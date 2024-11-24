@@ -10,7 +10,7 @@ swt_bd = "swt.db"
 
 # Определяем класс Task для управления задачами
 class Task:
-    def __init__(self, project_id, task_id, task_name, start_date, total_duration, start_time, timer_status, end_date, project_frame, last_task):
+    def __init__(self, project_id, task_id, task_name, start_date, total_duration, start_time, timer_status, end_date, project_frame, last_task, payment):
         self.project_id = project_id  # id проекта в таблице проектов и имя таблицы для этого проекта с записями задач
         self.task_id = task_id
         self.task_name = task_name
@@ -22,6 +22,7 @@ class Task:
             self.start_time = datetime.datetime(1, 1, 1, 0, 0, 0)
         self.timer_status = timer_status
         self.end_date = end_date
+        self.task_pay = payment
         self.last_task = last_task
         (self.task_frame,
          self.delete_task_widget,
@@ -30,19 +31,25 @@ class Task:
          self.end_task_widget,
          self.begin_date_task_text,
          self.status_task_widget,
-         self.arrow_task) = gui_utils.create_task_gui(project_frame, self.task_name, self.start_date, self.end_date, self.timer_status, self.last_task, self)
+         self.arrow_task,
+         self.task_payment_widget) = gui_utils.create_task_gui(project_frame, self.task_name, self.start_date, self.end_date, self.timer_status, self.last_task, self)
         # определяем функцию обработчика событий нажатия на кнопку Удаления Задачи
         self.delete_task_widget.bind("<Button-1>", self.delete_self)
         # определяем функцию обработчика событий нажатия на кнопку Старт таймера Задачи
         self.start_task_widget.bind("<Button-1>", self.start_timer)
         # определяем функцию обработчика событий нажатия на кнопку завершения Задачи
         self.end_task_widget.bind("<Button-1>", self.end_task)
+        # определяем функцию обработчика событий нажатия на кнопку Статуса оплаты
+        self.task_payment_widget.bind("<Button-1>", self.task_pay_change)
         # определяем функцию обработчика событий при наведении мыши на кнопку Старт таймера Задачи
         self.start_task_widget.bind("<Enter>", self.hover_on_start_task)
         self.start_task_widget.bind("<Leave>", self.hover_off_start_task)
         # определяем функцию обработчика событий при наведении мыши на кнопку завершения Задачи
         self.end_task_widget.bind("<Enter>", self.hover_on_end_task)
         self.end_task_widget.bind("<Leave>", self.hover_off_end_task)
+        # определяем функцию обработчика событий при наведении мыши на кнопку Статуса оплаты
+        self.task_payment_widget.bind("<Enter>", self.hover_on_task_payment)
+        self.task_payment_widget.bind("<Leave>", self.hover_off_task_payment)
 
     def start_timer(self, event):
         if self.end_date is None:  # если задача не завершена
@@ -137,6 +144,33 @@ class Task:
             iter_x = iter_x + 1
         print(f"Task '{self.task_name}' deleted")
 
+    # функция замены картинки на кнопке статуса оплаты задачи
+    def task_pay_change(self, event):
+        payment_dic = [['wait', gui_utils.tk_task_pay_wait_skin],
+                       ['ok', gui_utils.tk_task_pay_ok_skin],
+                       ['free', gui_utils.tk_task_pay_free_skin]]
+        i = 0
+        status = self.task_pay
+        # проходимся по парам статус/картинка
+        for dic in payment_dic:
+            # если статус совпадает с текущим статусом
+            if dic[0] == status:
+                # если это значение не последней пары
+                if i < len(payment_dic) - 1:
+                    # меняем картинку кнопки на картинку из следующуей пары
+                    self.task_payment_widget.itemconfig(self.task_payment_widget.image_id, image=payment_dic[i+1][1])
+                    # меняем статус оплаты в совойстве обьекта проекта
+                    self.task_pay = payment_dic[i+1][0]
+                    # сохраняем значение статуса в БД
+                    db_utils.update_value(self.project_id, 'payment', self.task_id, payment_dic[i+1][0])
+                # если это значение последней пары
+                else:
+                    self.task_payment_widget.itemconfig(self.task_payment_widget.image_id, image=payment_dic[0][1])
+                    self.task_pay = payment_dic[0][0]
+                    # сохраняем значение статуса в БД
+                    db_utils.update_value(self.project_id, 'payment', self.task_id, payment_dic[0][0])
+            i = i + 1
+
     # подсветка кнопок при наведении мыши на кнопку Старт таймера Задачи
     def hover_on_start_task(self, event):
         # Замена изображения при наведении курсора
@@ -169,14 +203,32 @@ class Task:
             else:
                 self.end_task_widget.itemconfig(self.end_task_widget.image_id, image=gui_utils.tk_end_task_skin)
 
+    # подсветка кнопок при наведении мыши на кнопку Статус оплаты
+    def hover_on_task_payment(self, event):
+        # Замена изображения при наведении курсора
+        if self.task_pay == 'wait':
+            self.task_payment_widget.itemconfig(self.task_payment_widget.image_id, image=gui_utils.tk_task_pay_wait_hover_skin)
+        if self.task_pay == 'ok':
+            self.task_payment_widget.itemconfig(self.task_payment_widget.image_id, image=gui_utils.tk_task_pay_ok_hover_skin)
+        if self.task_pay == 'free':
+            self.task_payment_widget.itemconfig(self.task_payment_widget.image_id, image=gui_utils.tk_task_pay_free_hover_skin)
+    def hover_off_task_payment(self, event):
+        # Возвращение старого изображения при убирании курсора
+        if self.task_pay == 'wait':
+            self.task_payment_widget.itemconfig(self.task_payment_widget.image_id, image=gui_utils.tk_task_pay_wait_skin)
+        if self.task_pay == 'ok':
+            self.task_payment_widget.itemconfig(self.task_payment_widget.image_id, image=gui_utils.tk_task_pay_ok_skin)
+        if self.task_pay == 'free':
+            self.task_payment_widget.itemconfig(self.task_payment_widget.image_id, image=gui_utils.tk_task_pay_free_skin)
 
-            # Определяем класс Project для управления проектами
+# Определяем класс Project для управления проектами
 class Project:
-    def __init__(self, main_frame_projects, project_id, project_name, begin_date, end_date):
+    def __init__(self, main_frame_projects, project_id, project_name, begin_date, end_date, project_pay):
         self.name = project_name
         self.id = project_id
         self.start_date = begin_date
         self.end_date = end_date
+        self.project_pay = project_pay
         self.tasks = db_utils.get_list_tasks(project_id)
         self.status = True
         if end_date != None: self.status = False
@@ -190,7 +242,8 @@ class Project:
          self.end_project_widget,
          self.begin_date_project_text,
          self.status_project_widget,
-         self.show_tasks_widget) = gui_utils.create_project_gui(main_frame_projects, self.name, self.start_date, self.end_date, self)
+         self.show_tasks_widget,
+         self.project_payment_widget) = gui_utils.create_project_gui(main_frame_projects, self.name, self.start_date, self.end_date, self)
 
         # создаем список задач-проектов
         if self.tasks != []:
@@ -198,7 +251,7 @@ class Project:
             last_task = False
             for tasks_table in self.tasks:
                 if i == self.tasks.__len__(): last_task = True  # проверяем, является ли задача последней в списке
-                task = Task(self.id, tasks_table[0], tasks_table[1],tasks_table[2],tasks_table[3],tasks_table[4],tasks_table[5],tasks_table[6],self.project_frame, last_task)
+                task = Task(self.id, tasks_table[0], tasks_table[1],tasks_table[2],tasks_table[3],tasks_table[4],tasks_table[5],tasks_table[6],self.project_frame, last_task, tasks_table[7])
                 self.tasks_obj.append(task)
                 i += 1
         # определяем функцию обработчика событий нажатия на кнопку Удаления проекта
@@ -209,15 +262,20 @@ class Project:
         self.end_project_widget.bind("<Button-1>", self.end_project)
         # определяем функцию обработчика событий нажатия на кнопку Скрыть Задачи
         self.show_tasks_widget.bind("<Button-1>", self.show_tasks)
+        # определяем функцию обработчика событий нажатия на кнопку Статуса оплаты
+        self.project_payment_widget.bind("<Button-1>", self.project_pay_change)
         # определяем функцию обработчика событий при наведении мыши на кнопку Добавления Задачи
         self.add_task_widget.bind("<Enter>", self.hover_on_add_task)
         self.add_task_widget.bind("<Leave>", self.hover_off_add_task)
-        # определяем функцию обработчика событий при наведении мыши на кнопку завершения Задачи
+        # определяем функцию обработчика событий при наведении мыши на кнопку Завершения Задачи
         self.end_project_widget.bind("<Enter>", self.hover_on_end_project)
         self.end_project_widget.bind("<Leave>", self.hover_off_end_project)
         # определяем функцию обработчика событий при наведении мыши на кнопку Показать Задачи
         self.show_tasks_widget.bind("<Enter>", self.hover_on_show_tasks)
         self.show_tasks_widget.bind("<Leave>", self.hover_off_show_tasks)
+        # определяем функцию обработчика событий при наведении мыши на кнопку Статуса оплаты
+        self.project_payment_widget.bind("<Enter>", self.hover_on_project_payment)
+        self.project_payment_widget.bind("<Leave>", self.hover_off_project_payment)
 
     def delete_self(self, event):
         # удаляем таблицу Проекта c задачами из БД
@@ -249,7 +307,7 @@ class Project:
                         task.last_task = False  # помечаем как непоследнюю
                         task.arrow_task.itemconfig(task.arrow_task.image_id, image=gui_utils.tk_arrow_skin)
                 # создаем новый обьект класса Task и рисуем его
-                task = Task(self.id, task_id, new_task_name, start_date, 0,"None",False,None,self.project_frame, True)
+                task = Task(self.id, task_id, new_task_name, start_date, 0,"None",False,None,self.project_frame, True, 'wait')
                 # добавляем обьект в список обьектов класаа Main
                 self.tasks_obj.append(task)
             else:
@@ -293,6 +351,33 @@ class Project:
                 tasks.task_frame.pack(expand=True, fill='x', side='top', anchor="nw", padx=15, pady=0)
             self.visible_tasks = True
 
+    # функция замены картинки на кнопке статуса оплаты проекта
+    def project_pay_change(self, event):
+        payment_dic = [['wait', gui_utils.tk_project_pay_wait_skin],
+                       ['ok', gui_utils.tk_project_pay_ok_skin],
+                       ['free', gui_utils.tk_project_pay_free_skin]]
+        i = 0
+        status = self.project_pay
+        # проходимся по парам статус/картинка
+        for dic in payment_dic:
+            # если статус совпадает с текущим статусом
+            if dic[0] == status:
+                # если это значение не последней пары
+                if i < len(payment_dic) - 1:
+                    # меняем картинку кнопки на картинку из следующуей пары
+                    self.project_payment_widget.itemconfig(self.project_payment_widget.image_id, image=payment_dic[i+1][1])
+                    # меняем статус оплаты в совойстве обьекта проекта
+                    self.project_pay = payment_dic[i+1][0]
+                    # сохраняем значение статуса в БД
+                    db_utils.update_value('PROJECTS', 'payment', self.id, payment_dic[i+1][0])
+                # если это значение последней пары
+                else:
+                    self.project_payment_widget.itemconfig(self.project_payment_widget.image_id, image=payment_dic[0][1])
+                    self.project_pay = payment_dic[0][0]
+                    # сохраняем значение статуса в БД
+                    db_utils.update_value('PROJECTS', 'payment', self.id, payment_dic[0][0])
+            i = i + 1
+
     # подсветка кнопок при наведении мыши на кнопку Добавления Задачи
     def hover_on_add_task(self, event):
         # Замена изображения при наведении курсора
@@ -327,6 +412,24 @@ class Project:
         else:
             self.show_tasks_widget.itemconfig(self.show_tasks_widget.image_id, image=gui_utils.tk_show_tasks_off_skin)
 
+    # подсветка кнопок при наведении мыши на кнопку Статус оплаты
+    def hover_on_project_payment(self, event):
+        # Замена изображения при наведении курсора
+        if self.project_pay == 'wait':
+            self.project_payment_widget.itemconfig(self.project_payment_widget.image_id, image=gui_utils.tk_project_pay_wait_hover_skin)
+        if self.project_pay == 'ok':
+            self.project_payment_widget.itemconfig(self.project_payment_widget.image_id, image=gui_utils.tk_project_pay_ok_hover_skin)
+        if self.project_pay == 'free':
+            self.project_payment_widget.itemconfig(self.project_payment_widget.image_id, image=gui_utils.tk_project_pay_free_hover_skin)
+    def hover_off_project_payment(self, event):
+        # Возвращение старого изображения при убирании курсора
+        if self.project_pay == 'wait':
+            self.project_payment_widget.itemconfig(self.project_payment_widget.image_id, image=gui_utils.tk_project_pay_wait_skin)
+        if self.project_pay == 'ok':
+            self.project_payment_widget.itemconfig(self.project_payment_widget.image_id, image=gui_utils.tk_project_pay_ok_skin)
+        if self.project_pay == 'free':
+            self.project_payment_widget.itemconfig(self.project_payment_widget.image_id, image=gui_utils.tk_project_pay_free_skin)
+
 # Определяем основной класс Main для управления проектами
 class Main:
     def __init__(self):
@@ -357,7 +460,7 @@ class Main:
         # создаем список обьектов-проектов по списку таблиц в базе данных
         if self.projects != []:
             for project_table in self.projects:
-                project = Project(self.main_frame_projects, project_table[0], project_table[1], project_table[2], project_table[3])
+                project = Project(self.main_frame_projects, project_table[0], project_table[1], project_table[2], project_table[3], project_table[4])
                 self.projects_obj.append(project)
                 pass
 
@@ -430,7 +533,7 @@ class Main:
             # добавляем новый Проект в БД
             project_table = db_utils.add_project(new_project_name)
             # создаем новый обьект класса Проект
-            project = Project(self.main_frame_projects, project_table[0], project_table[1], project_table[2], project_table[3])
+            project = Project(self.main_frame_projects, project_table[0], project_table[1], project_table[2], project_table[3], project_table[4])
             # добавляем обьект в список обьектов класаа Main
             self.projects_obj.append(project)
         else:
