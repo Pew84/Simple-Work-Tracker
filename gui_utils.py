@@ -48,8 +48,6 @@ def run_gui():
     root = tkinter.Tk()  # Создаем главное окно приложения
     root.title("Simple Work Tracker")  # Устанавливаем заголовок окна
     root.geometry(db_utils.get_value('OPTIONS', 'window_geometry', 1))  # Устанавливаем размер окна
-    print(root.geometry())
-    print(db_utils.get_value('OPTIONS', 'window_geometry', 1))
 
     # Загружаем изображение и устанавливаем его как иконку
     favicon = tkinter.PhotoImage(file="skin/favicon.png")
