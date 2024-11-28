@@ -31,6 +31,35 @@ def get_list_tasks(project_id):
     conn.close()
     return list_projects
 
+# Функция для создания таблицы опций в базе данных
+def create_table_options(conn):
+    cursor = conn.cursor() # Создаем курсор для выполнения SQL-запросов
+    # Проверка существования таблицы OPTIONS
+    table_name = "OPTIONS"
+    cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name=?", (table_name,))
+    result = cursor.fetchone()
+    # если таблицы нет, то создаем
+    if not result:
+        create_table_sql = """
+        CREATE TABLE IF NOT EXISTS OPTIONS (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            window_geometry TEXT,
+            complete_visible BOOLEAN,
+            current_visible BOOLEAN
+        );
+        """
+        cursor.execute(create_table_sql)  # Выполняем запрос на создание таблицы
+        conn.commit()  # Фиксируем изменения в базе данных
+        print("Table OPTIONS created")
+        # добавляем записи значений опций по умолчанию
+        cursor.execute(f"""
+                INSERT INTO OPTIONS (window_geometry, complete_visible, current_visible)
+                VALUES (?, ?, ?);
+                """, ('1100x600+200+200', False, True))
+        conn.commit()  # Фиксируем изменения в базе данных
+        cursor.close()  # Закрываем курсор
+    cursor.close()  # Закрываем курсор
+
 # Функция для создания таблицы проектов в базе данных
 def create_table_projects(conn):
     cursor = conn.cursor()  # Создаем курсор для выполнения SQL-запросов
@@ -163,6 +192,26 @@ def update_value(table_name, column, row_id, new_value):
         print(f"Значение обновлено в строке с id={row_id} в столбце '{column}'")
     except sqlite3.Error as err:
         print(f"Error on update data: {err}")
+    finally:
+        # Закрытие подключения
+        conn.close()
+
+def get_value(table_name, column, row_id):
+    try:
+        # Подключение к базе данных
+        conn = create_connection(swt_bd)  # Подключаемся к базе данных
+        cursor = conn.cursor()  # Создаем курсор для выполнения SQL-запросов
+        # Формирование SQL-запроса для чтения значения
+        query = f"SELECT {column} FROM {table_name} WHERE id = ?"
+        # Выполнение запроса с подстановкой значений
+        cursor.execute(query, (row_id,))
+        # Получение результата
+        result = cursor.fetchone()
+        # Если результат найден, вернуть его, иначе вернуть None
+        return result[0] if result else None
+    except sqlite3.Error as err:
+        print(f"Error on read data: {err}")
+        return None
     finally:
         # Закрытие подключения
         conn.close()

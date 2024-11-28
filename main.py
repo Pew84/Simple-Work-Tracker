@@ -434,8 +434,8 @@ class Project:
 class Main:
     def __init__(self):
         self.projects = db_utils.get_list_projects()  # загружаем из бд список проектов
-        self.complete_button = False  # кнопка отображения завершенных проектов
-        self.current_button = True  # кнопка отображения активных проектов
+        self.complete_button = bool(db_utils.get_value('OPTIONS', 'complete_visible', 1))  # кнопка отображения завершенных проектов
+        self.current_button = bool(db_utils.get_value('OPTIONS', 'current_visible', 1))  # кнопка отображения активных проектов
         self.projects_obj = []  # список обьектов проектов
         # создаем грфические объекты основной панели
         (self.main_frame_projects,
@@ -460,7 +460,12 @@ class Main:
         # создаем список обьектов-проектов по списку таблиц в базе данных
         if self.projects != []:
             for project_table in self.projects:
-                project = Project(self.main_frame_projects, project_table[0], project_table[1], project_table[2], project_table[3], project_table[4])
+                project = Project(self.main_frame_projects,
+                                  project_table[0],
+                                  project_table[1],
+                                  project_table[2],
+                                  project_table[3],
+                                  project_table[4])
                 self.projects_obj.append(project)
                 pass
 
@@ -479,6 +484,8 @@ class Main:
                     if projects.end_date == None:
                         projects.project_frame.pack(projects.project_frame.widget_pack_info)
             self.complete_button = False
+            # сохраняем значение в БД
+            db_utils.update_value('OPTIONS', 'complete_visible', 1, False)
         else:
             self.complete_button_widget.itemconfig(self.complete_button_widget.image_id, image=gui_utils.tk_show_button_skin)
             self.complete_button_widget.itemconfig(self.complete_button_widget.text_id, fill="white")
@@ -492,6 +499,8 @@ class Main:
                 elif self.current_button == True:
                     projects.project_frame.pack(projects.project_frame.widget_pack_info)
             self.complete_button = True
+            # сохраняем значение в БД
+            db_utils.update_value('OPTIONS', 'complete_visible', 1, True)
 
     # функция обработки события нажатия на кнопку отображения Текущих проектов
     def current_view_button_click(self, event):
@@ -508,6 +517,8 @@ class Main:
                     if projects.end_date != None:
                         projects.project_frame.pack(projects.project_frame.widget_pack_info)
             self.current_button = False
+            # сохраняем значение в БД
+            db_utils.update_value('OPTIONS', 'current_visible', 1, False)
         else:
             # изменяем виджет кнопки
             self.current_button_widget.itemconfig(self.current_button_widget.image_id, image=gui_utils.tk_show_button_skin)
@@ -522,6 +533,8 @@ class Main:
                 elif self.complete_button == True:
                     projects.project_frame.pack(projects.project_frame.widget_pack_info)
             self.current_button = True
+            # сохраняем значение в БД
+            db_utils.update_value('OPTIONS', 'current_visible', 1, True)
 
     # функция обработки события нажатия на кнопку Добваить новый проект
     def add_project_button_click(self, event):
@@ -576,32 +589,29 @@ class Main:
             self.current_button_widget.itemconfig(self.current_button_widget.image_id, image=gui_utils.tk_hide_button_skin)
 
 def main_thread():
-    global main, conn
-    # Подключаемся к базе данных
-    conn = db_utils.create_connection(swt_bd)
-    # Содаем таблицу проектов если она не была создана
-    db_utils.create_table_projects(conn)
+    global main
     # Создаем объект Main и загружаем в него обьекты Проекты и Задачи из БД
     main = Main()
     while True:
-        # если окно закрыто, то выходим из цикла
-        # if not gui_thread.is_alive():
-        #     break
-        # функция обновления таймеров в грфическом окне
+        # функция обновления таймеров в графическом окне
         swt_utils.update_window(main)
         time.sleep(1)
     conn.close()  # Закрываем соединение с базой данных
 
 # Точка входа в программу
 if __name__ == "__main__":
-
+    # Подключаемся к базе данных
+    conn = db_utils.create_connection(swt_bd)
+    # Содаем таблицу опций, если она не была создана
+    db_utils.create_table_options(conn)
+    # Содаем таблицу проектов, если она не была создана
+    db_utils.create_table_projects(conn)
     # запускаем основную программу в отдельном потоке
     m_thread = threading.Thread(target=main_thread)
     # Закрыть поток при завершении основного потока
     m_thread.daemon = True
     # Запускаем поток
     m_thread.start()
-
     # Запускаем графический интерфейс
     gui_utils.run_gui()
 

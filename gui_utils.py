@@ -7,25 +7,56 @@ import swt_utils
 from PIL import ImageTk, Image
 
 root = 0
-complete_button = 0
-current_button = 0
+#complete_button = 0
+#current_button = 0
 
 # Функция возвращает обьект типа TKimage для использования его в виджетах библиотеки tkinter
 def img_load(path):
     image = Image.open("skin/"+path)
     return ImageTk.PhotoImage(image)
 
+# обработка событию закрытия окна
+def on_close():
+    # Сохраняем пложение и размер окна в БД
+    db_utils.update_value('OPTIONS', 'window_geometry', 1, root.geometry())
+    root.destroy()  # Закрыть главное окно
+
+# уменьшение ширины главного окна на 1
+def resize_width():
+    # Получаем текущие размеры окна
+    current_geometry = root.geometry()
+    # Парсинг строки geometry "WxH+X+Y"
+    dimensions, position = current_geometry.split("+", 1)
+    width, height = map(int, dimensions.split("x"))
+    x, y = map(int, position.split("+"))
+    # Уменьшаем ширину на 1 пиксель
+    new_width = max(width - 1, 1)  # Не позволяем ширине быть меньше 1
+    root.geometry(f"{new_width}x{height}+{x}+{y}")
+
+
+def parse_geometry(geometry):
+    # Парсинг строки geometry "WxH+X+Y"
+    dimensions, position = geometry.split("+", 1)
+    width, height = map(int, dimensions.split("x"))
+    x, y = map(int, position.split("+"))
+    return width, height, x, y
+
 # Функция для запуска графического интерфейса
 def run_gui():
-    global root, complete_button, current_button
+    global root
 
     root = tkinter.Tk()  # Создаем главное окно приложения
     root.title("Simple Work Tracker")  # Устанавливаем заголовок окна
-    root.geometry("1100x600")  # Устанавливаем размер окна
+    root.geometry(db_utils.get_value('OPTIONS', 'window_geometry', 1))  # Устанавливаем размер окна
+    print(root.geometry())
+    print(db_utils.get_value('OPTIONS', 'window_geometry', 1))
 
     # Загружаем изображение и устанавливаем его как иконку
     favicon = tkinter.PhotoImage(file="skin/favicon.png")
     root.iconphoto(False, favicon)
+
+    # Привязываем функцию к событию закрытия окна
+    root.protocol("WM_DELETE_WINDOW", on_close)
 
     # загружаем шрифты
     """Represents a named font.
@@ -176,7 +207,6 @@ def run_gui():
     tk_task_pay_wait_hover_skin = img_load("task_pay_wait_hover.png")
 
 
-
     root.mainloop()  # Запускаем основной цикл обработки событий для окна
 
 # рисуем интерфейс основного окна
@@ -196,25 +226,36 @@ def create_main_frame():
     main_frame = tkinter.Frame(root, bg="#efefef", height=120)
     main_frame.pack_propagate(False)
     main_frame.grid(row=0, column=0, columnspan=2, sticky="ew")  # Только горизонтальное расширение, занимает 2 столбца
-    # кнопка Завершенные основного фрейма
+    # кнопка ЗАВЕРШЕННЫЕ основного фрейма
     complete_view_button = tkinter.Canvas(main_frame, bg="#efefef", width=222, height=42, highlightthickness=0)
     complete_view_button.pack_propagate(False)  # запрет деформации
     complete_view_button.pack(side="left", anchor="sw", padx=15, pady=0)
     # Размещаем изображение в Canvas
-    complete_view_button.image_id = complete_view_button.create_image(111, 21, anchor="center", image=tk_hide_button_skin)
+    if db_utils.get_value('OPTIONS', 'complete_visible', 1) == 0:
+        complete_view_button.image_id = complete_view_button.create_image(111, 21, anchor="center", image=tk_hide_button_skin)
+        # Пишем подпись кнопки
+        complete_view_button.text_id = complete_view_button.create_text(95, 21, text="Завершенные", font=("Helvetica", 16), fill="black")
+    else:
+        complete_view_button.image_id = complete_view_button.create_image(111, 21, anchor="center", image=tk_show_button_skin)
+        # Пишем подпись кнопки
+        complete_view_button.text_id = complete_view_button.create_text(95, 21, text="Завершенные", font=("Helvetica", 16), fill="white")
     complete_view_button.create_image(185, 21, anchor="center", image=tk_task_status_off_skin)
-    # Пишем подпись кнопки
-    complete_view_button.text_id = complete_view_button.create_text(95, 21, text="Завершенные", font=("Helvetica", 16), fill="black")
 
-    # кнопка Текущие основного фрейма
+    # кнопка ТЕКУЩИЕ основного фрейма
     current_view_button = tkinter.Canvas(main_frame, bg="#efefef", width=222, height=42, highlightthickness=0)
     current_view_button.pack_propagate(False)
     current_view_button.pack(side="left", anchor="sw", padx=0, pady=0)
     # Размещаем изображение в Canvas
-    current_view_button.image_id = current_view_button.create_image(111, 21, anchor="center", image=tk_show_button_skin)
+    if db_utils.get_value('OPTIONS', 'current_visible', 1) == 1:
+        current_view_button.image_id = current_view_button.create_image(111, 21, anchor="center", image=tk_show_button_skin)
+        # Пишем подпись кнопки
+        current_view_button.text_id = current_view_button.create_text(95, 21, text="Текущие", font=("Helvetica", 16), fill="white")
+    else:
+        current_view_button.image_id = current_view_button.create_image(111, 21, anchor="center", image=tk_hide_button_skin)
+        # Пишем подпись кнопки
+        current_view_button.text_id = current_view_button.create_text(95, 21, text="Текущие", font=("Helvetica", 16), fill="black")
     current_view_button.create_image(165, 21, anchor="center", image=tk_task_status_on_skin)
-    # Пишем подпись кнопки
-    current_view_button.text_id = current_view_button.create_text(95, 21, text="Текущие", font=("Helvetica", 16), fill="white")
+
 
     # кнопка СОЗДАНИЯ НОВОГО ПРОЕКТА
     # Создаем Canvas для размещения изображения
@@ -225,7 +266,6 @@ def create_main_frame():
 
     # Создаем холст для области списка проектов
     canvas = tkinter.Canvas(root, bg="#efefef", highlightthickness=0) #, scrollregion=(0, 0, 1000, 1000))
-    #canvas.pack(side="left", fill="both", expand=True)
     canvas.grid(row=1, column=0, sticky="nsew", padx=15, pady=15)  # Растягиваем по всем направлениям
     root.grid_columnconfigure(0, weight=1)  # Столбец 0 будет растягиваться по ширине
     root.grid_rowconfigure(1, weight=1)  # Строка 1 будет растягиваться по высоте
@@ -247,7 +287,7 @@ def create_main_frame():
     canvas.bind('<Configure>', resize_frame)
     # Обработка прокрутки колеса мыши
     canvas.bind_all("<MouseWheel>", on_mouse_wheel)
-    root.geometry("1101x600")  # меняем размер окна для срабатывания события event, чтобы все элементы растянулись на всю ширину окна
+    resize_width() # меняем размер окна для срабатывания события event, чтобы все элементы растянулись на всю ширину окна
     return main_frame_projects, complete_view_button, current_view_button, add_project_button
 
 
@@ -289,8 +329,10 @@ def create_project_gui(main_frame_projects, project_name, begin_date, end_date, 
     main_project_frame = tkinter.Frame(main_frame_projects, bg="#cfcfcf", width=800, height=100)
     main_project_frame.pack(expand=True, fill='x', side='bottom', anchor="nw", padx=0, pady=15) # Только горизонтальное расширение
     main_project_frame.widget_pack_info = main_project_frame.pack_info() # Сохраняем параметры компоновки
-    # если проект завершен, то скрываем его
-    if end_date != None:
+    # проверка на фильтр видимости ТЕКУЩИХ и ЗАВЕРШЕННЫХ проектов
+    if (project_class.end_date is None) and (bool(db_utils.get_value('OPTIONS', 'current_visible', 1)) == False):
+        main_project_frame.pack_forget()
+    if (project_class.end_date is not None) and (bool(db_utils.get_value('OPTIONS', 'complete_visible', 1)) == False):
         main_project_frame.pack_forget()
     # область верхнего скругления фрейма проекта
     main_frame_rectangle_top = tkinter.Frame(main_project_frame, bg="#cfcfcf", width=800, height=15)
